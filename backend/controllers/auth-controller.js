@@ -45,17 +45,16 @@ const registerUser = async(req,res)=>{
             expiresIn : "1d"
         })
 
-        const sendUser = {
-            userId : user.id,
-            username : user.username,
-            role : user.role
-        };
-
         res.status(201).json({
             success : true,
             message : "User registration successful  🥳🥳",
-            sendUser,
-            accessToken
+            accessToken,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+            },
         })
     }
     catch(error){
@@ -105,17 +104,16 @@ const loginUser = async(req,res)=>{
             expiresIn : "1d"
         })
 
-        const sendUser = {
-            userId : user.id,
-            username : user.username,
-            role : user.role
-        };
-
         res.status(200).json({
             success : true,
             message : "Logged in successfully !",
-            sendUser,
-            accessToken
+            accessToken,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+            },
         })
     }
     catch(error){

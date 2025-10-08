@@ -25,6 +25,7 @@ export default function LoginPage() {
 
       if (res.data.success) {
         localStorage.setItem("accessToken", res.data.accessToken);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
         setUser(res.data.user);
         toast.success("Logged in successfully!", { duration: 2000 });
         // Redirect to home page
