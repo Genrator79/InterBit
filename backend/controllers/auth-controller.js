@@ -1,7 +1,6 @@
 const bcrypt=require("bcrypt")
 const jwt =require("jsonwebtoken")
 const {PrismaClient} = require('@prisma/client');
-const { send } = require("vite");
 
 const prisma = new PrismaClient();
 
@@ -55,7 +54,7 @@ const registerUser = async(req,res)=>{
         res.status(201).json({
             success : true,
             message : "User registration successful  🥳🥳",
-            send,
+            sendUser,
             accessToken
         })
     }
