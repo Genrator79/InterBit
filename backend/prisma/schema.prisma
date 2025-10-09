@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Prisma Schema for AI Interview Platform with Mentors
 
 generator client {
   provider = "prisma-client-js"
@@ -18,11 +14,69 @@ model User {
   username  String
   email     String   @unique
   password  String
-  role      userRole @default(USER)
+  role      UserRole @default(USER)
   createdAt DateTime @default(now())
+
+  // relationships
+  interviews Interview[]
+
+  @@map("users")
 }
 
-enum userRole {
+model Mentor {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  speciality  String   // e.g. "AI/ML", "Frontend", "Data Science"
+  bio         String?
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // relationships
+  interviews Interview[]
+
+  @@map("mentors")
+}
+
+model Interview {
+  id           String           @id @default(cuid())
+  type         InterviewType    @default(AI) // AI or HUMAN
+  date         DateTime
+  time         String           // "14:30"
+  duration     Int              @default(60) // in minutes
+  status       InterviewStatus  @default(SCHEDULED)
+  feedback     String?          // notes/feedback after interview
+  score        Int?             // optional evaluation score
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  // foreign keys
+  userId    Int
+  mentorId  String?            // null if AI interview
+
+  // relationships
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentor    Mentor? @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@map("interviews")
+}
+
+enum UserRole {
   USER
+  MENTOR
   ADMIN
+}
+
+enum InterviewType {
+  AI
+  HUMAN
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
 }

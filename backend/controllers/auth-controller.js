@@ -4,6 +4,14 @@ const {PrismaClient} = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+//get all user
+const getAllUsers = async(req, res)=>{
+    const users = await prisma.user.findMany();
+
+    return res.status(200).json(users);
+}
+
+
 //register conltoller
 const registerUser = async(req,res)=>{
     try{
@@ -50,10 +58,10 @@ const registerUser = async(req,res)=>{
             message : "User registration successful  🥳🥳",
             accessToken,
             user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                role: user.role,
+                id: newlyCreatedUser.id,
+                username: newlyCreatedUser.username,
+                email: newlyCreatedUser.email,
+                role: newlyCreatedUser.role,
             },
         })
     }
@@ -125,6 +133,7 @@ const loginUser = async(req,res)=>{
     }
 };
 
+
 //update password
 const changePassword = async(req,res) => {
     try{
@@ -193,4 +202,4 @@ const changePassword = async(req,res) => {
 }
 
 
-module.exports = {registerUser, loginUser, changePassword};
+module.exports = {registerUser, loginUser, changePassword, getAllUsers};
