@@ -8,14 +8,14 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 // Get all users (example)
-router.get("/users", authMiddleware, isAdminUser, getAllUsers);
+router.get("/", authMiddleware, isAdminUser, getAllUsers);
 
 //Register a user
 router.post('/auth/register', registerUser);
 
 //login user
 router.post("/auth/login", loginUser);
-router.post("/user/changepassword", authMiddleware, changePassword);
+router.post("/changepassword", authMiddleware, changePassword);
 
 
 module.exports = router;
