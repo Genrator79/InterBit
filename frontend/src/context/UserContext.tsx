@@ -49,7 +49,6 @@ export const UserProvider = ({ children }: Props) => {
       localStorage.setItem("user", JSON.stringify(user));
     } else {
       localStorage.removeItem("user");
-      localStorage.removeItem("accessToken"); // optional, remove token on logout
     }
   }, [user]);
 

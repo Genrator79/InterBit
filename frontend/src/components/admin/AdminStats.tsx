@@ -1,21 +1,22 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, Calendar, UserCheck, Clock } from "lucide-react";
+import { Users, UserCheck, Calendar, Clock } from "lucide-react";
 
 interface AdminStatsProps {
-  totalDoctors: number;
-  activeDoctors: number;
-  totalAppointments: number;
-  completedAppointments: number;
+  totalMentors: number;
+  activeMentors: number;
+  totalInterviews: number;
+  completedInterviews?: number; // optional if you track completed interviews
 }
 
 function AdminStats({
-  activeDoctors,
-  totalDoctors,
-  completedAppointments,
-  totalAppointments,
+  totalMentors,
+  activeMentors,
+  totalInterviews,
+  completedInterviews,
 }: AdminStatsProps) {
   return (
     <div className="grid md:grid-cols-4 gap-6 mb-12">
+      {/* Total Mentors */}
       <Card className="border-2 hover:border-primary/30 transition-all duration-300">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -23,13 +24,14 @@ function AdminStats({
               <Users className="size-6" />
             </div>
             <div>
-              <div className="text-2xl font-bold">{totalDoctors}</div>
-              <div className="text-sm text-muted-foreground">Total Doctors</div>
+              <div className="text-2xl font-bold">{totalMentors}</div>
+              <div className="text-sm text-muted-foreground">Total Mentors</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Active Mentors */}
       <Card className="border-2 hover:border-primary/30 transition-all duration-300">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -37,13 +39,14 @@ function AdminStats({
               <UserCheck className="size-6" />
             </div>
             <div>
-              <div className="text-2xl font-bold">{activeDoctors}</div>
-              <div className="text-sm text-muted-foreground">Active Doctors</div>
+              <div className="text-2xl font-bold">{activeMentors}</div>
+              <div className="text-sm text-muted-foreground">Active Mentors</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Total Interviews */}
       <Card className="border-2 hover:border-primary/30 transition-all duration-300">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -51,13 +54,14 @@ function AdminStats({
               <Calendar className="size-6" />
             </div>
             <div>
-              <div className="text-2xl font-bold">{totalAppointments}</div>
-              <div className="text-sm text-muted-foreground">Total Appointments</div>
+              <div className="text-2xl font-bold">{totalInterviews}</div>
+              <div className="text-sm text-muted-foreground">Total Interviews</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Completed Interviews (optional) */}
       <Card className="border-2 hover:border-primary/30 transition-all duration-300">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -65,8 +69,8 @@ function AdminStats({
               <Clock className="size-6" />
             </div>
             <div>
-              <div className="text-2xl font-bold">{completedAppointments}</div>
-              <div className="text-sm text-muted-foreground">Completed Appointments</div>
+              <div className="text-2xl font-bold">{completedInterviews ?? 0}</div>
+              <div className="text-sm text-muted-foreground">Completed Interviews</div>
             </div>
           </div>
         </CardContent>
@@ -74,4 +78,5 @@ function AdminStats({
     </div>
   );
 }
+
 export { AdminStats };

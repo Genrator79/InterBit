@@ -6,16 +6,23 @@ import { UserContext } from "@/context/UserContext";
 import { useContext } from "react";
 import { SettingsIcon } from "lucide-react";
 import { AdminStats } from "@/components/admin/AdminStats"
+import { useGetMentors } from "@/hooks/use-mentors";
+import { useGetAllInterviews } from "@/hooks/use-interviews"
+import { RecentInterviews } from "@/components/admin/RecentInterviews"
+import MentorsManagement from '@/components/admin/MentorManagement';
+
 const AdminDashboardClient = () => {
   const { user } = useContext(UserContext);
+  const { data: mentors = [], isLoading: mentorsLoading, error } = useGetMentors();
+  const { data: interviews = [], isLoading: interviewsLoading } = useGetAllInterviews();
 
   // calculate stats from real data
-  // const stats = {
-  //   totalDoctors: doctors.length,
-  //   activeDoctors: doctors.filter((doc) => doc.isActive).length,
-  //   totalAppointments: appointments.length,
-  //   completedAppointments: appointments.filter((app) => app.status === "COMPLETED").length,
-  // };
+  const stats = {
+    totalMentors: mentors.length,
+    activeMentors: mentors.filter((mentor) => mentor.isActive).length,
+    totalInterviews: interviews.length,
+    completedInterviews: interviews.filter((i) => i.status === "COMPLETED").length
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,12 +52,16 @@ const AdminDashboardClient = () => {
             </div>
           </div>
         </div>
-        {/* <AdminStats
-          totalDoctors={stats.totalDoctors}
-          activeDoctors={stats.activeDoctors}
-          totalAppointments={stats.totalAppointments}
-          completedAppointments={stats.completedAppointments}
-        /> */}
+        <AdminStats
+          totalMentors={stats.totalMentors}
+          activeMentors={stats.activeMentors}
+          totalInterviews={stats.totalInterviews}
+          completedInterviews={stats.completedInterviews} // only if you track completed interviews
+        />
+
+        <MentorsManagement />
+
+        <RecentInterviews />
       </div>
 
     </div>
