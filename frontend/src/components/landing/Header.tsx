@@ -15,10 +15,10 @@ function Header() {
           <a href="#" className="text-muted-foreground hover:text-foreground">
             How it Works
           </a>
-          <a href="#" className="text-muted-foreground hover:text-foreground">
+          <a href="/pro" className="text-muted-foreground hover:text-foreground">
             Pricing
           </a>
-          <a href="#" className="text-muted-foreground hover:text-foreground">
+          <a href="/about" className="text-muted-foreground hover:text-foreground">
             About
           </a>
         </div>

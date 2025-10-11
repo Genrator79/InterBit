@@ -178,6 +178,7 @@ export function useBookedTimeSlots(mentorId: string, date: string) {
 }
 
 export function useUserInterviewStats() {
+  const { user } = useContext(UserContext) as { user: User | null };
   const [data, setData] = useState<{ total: number; completed: number }>({ total: 0, completed: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -186,7 +187,8 @@ export function useUserInterviewStats() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get("/interviews/me/stats");
+      if (!user) return;
+      const response = await axios.get("/interviews/me/stats", { params: { userId: user.id }});
       setData(response.data);
     } catch (err: any) {
       console.error(err);

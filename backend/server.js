@@ -15,7 +15,7 @@ app.use(cors(
 app.use(express.json());
 
 // Mount the router at /api/user
-app.use('/api/user', userRoute);
+app.use('/api', userRoute);
 
 // Root route
 app.get('/api', (req, res) => res.send('This is home page!'));
