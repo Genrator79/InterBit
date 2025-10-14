@@ -6,7 +6,7 @@ async function main() {
 
   // Clear existing interviews
   await prisma.interview.deleteMany();
-
+  
   // -------------------------
   // 1️⃣ Create or Upsert Demo User
   // -------------------------

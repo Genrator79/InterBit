@@ -95,7 +95,7 @@ export async function getBookedTimeSlots(mentorId: string, date: string): Promis
     const response = await axios.get(`/interviews/booked-slots`, {
       params: { mentorId, date },
     });
-    return response.data;
+    return response.data.slots;
   } catch (error: any) {
     console.error("Error fetching booked time slots:", error.response?.data || error.message);
     return [];

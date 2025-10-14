@@ -43,7 +43,7 @@ model Mentor {
 
 model Interview {
   id           String           @id @default(cuid())
-  type         InterviewType    @default(AI) // AI or HUMAN
+  type         String            @default("AI")
   date         DateTime
   time         String           // "14:30"
   duration     Int              @default(60) // in minutes
@@ -68,11 +68,6 @@ enum UserRole {
   USER
   MENTOR
   ADMIN
-}
-
-enum InterviewType {
-  AI
-  HUMAN
 }
 
 enum InterviewStatus {

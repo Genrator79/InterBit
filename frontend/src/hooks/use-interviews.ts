@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useContext } from "react";
 import axios from "@/utils/axios";
 import { UserContext, User } from "@/context/UserContext";
+import { getBookedTimeSlots } from "@/lib/actions/interviews"
 
 export interface Interview {
   id: string;
@@ -20,27 +21,24 @@ export interface Interview {
 }
 
 export interface BookInterviewInput {
-  mentorId?: string;
-  date: string;
-  time: string;
-  type?: "AI" | "HUMAN";
-  duration?: number;
+  userId: number;       // must always be present
+  mentorId?: string | null;    // optional if AI interview
+  date: string;         // "YYYY-MM-DD"
+  time: string;         // "HH:mm"
+  type: string;         // e.g., "AI", "HUMAN", or any string your backend accepts
+  duration?: number;    // optional, will default to 60 if not provided
 }
 
-function transformInterview(interview: any): Interview {
+export function transformInterview(data: any) {
   return {
-    id: interview.id,
-    userName: interview.user.username,
-    userEmail: interview.user.email,
-    mentorName: interview.mentor?.name || "AI Interview",
-    mentorImageUrl: interview.mentor?.imageUrl || "",
-    date: interview.date,
-    time: interview.time,
-    type: interview.type,
-    status: interview.status,
-    duration: interview.duration,
-    feedback: interview.feedback,
-    score: interview.score,
+    id: data.id,
+    userName: data.user?.username || "Unknown",
+    userEmail: data.user?.email || "unknown@example.com",
+    mentorName: data.mentor?.name || (data.type === "AI" ? "AI Mentor" : "Unknown"),
+    date: data.date ? new Date(data.date).toISOString() : null, // convert to ISO string
+    time: data.time,
+    type: data.type,
+    duration: data.duration,
   };
 }
 
@@ -107,10 +105,23 @@ export function useBookInterview() {
   const [error, setError] = useState<string | null>(null);
 
   const book = useCallback(async (input: BookInterviewInput) => {
+    if (!input.userId) {
+      throw new Error("User ID is required");
+    }
+
+    // Default values
+    const payload = {
+      ...input,
+      type: input.type || "AI",           // default type
+      duration: input.duration || 60,     // default duration
+      mentorId: input.mentorId || null,   // null for AI interviews
+    };
+
     setIsLoading(true);
     setError(null);
+
     try {
-      const response = await axios.post("/interviews/book", input);
+      const response = await axios.post("/interviews/book", payload);
       return transformInterview(response.data);
     } catch (err: any) {
       console.error(err);
@@ -123,6 +134,7 @@ export function useBookInterview() {
 
   return { book, isLoading, error };
 }
+
 
 export function useUpdateInterviewStatus() {
   const [isLoading, setIsLoading] = useState(false);
@@ -149,7 +161,7 @@ export function useUpdateInterviewStatus() {
   return { updateStatus, isLoading, error };
 }
 
-export function useBookedTimeSlots(mentorId: string, date: string) {
+export function useBookedSlots(mentorId: string, date: string) {
   const [data, setData] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -160,12 +172,13 @@ export function useBookedTimeSlots(mentorId: string, date: string) {
     const fetchSlots = async () => {
       setIsLoading(true);
       setError(null);
+
       try {
-        const response = await axios.get("/interviews/booked-slots", { params: { mentorId, date } });
-        setData(response.data);
+        const slots = await getBookedTimeSlots(mentorId, date); // use the action
+        setData(slots);
       } catch (err: any) {
         console.error(err);
-        setError(err.response?.data?.error || "Failed to fetch booked slots");
+        setError(err.message || "Failed to fetch booked slots");
       } finally {
         setIsLoading(false);
       }
@@ -184,23 +197,31 @@ export function useUserInterviewStats() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
+    if (!user) return;
     setIsLoading(true);
     setError(null);
+
     try {
-      if (!user) return;
-      const response = await axios.get("/interviews/me/stats", { params: { userId: user.id }});
-      setData(response.data);
+      const response = await axios.get("/interviews/me/stats", {
+        params: { userId: user.id }
+      });
+      setData(response.data.stats);
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.error || "Failed to fetch interview stats");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
 
+  if (!user) {
+    return { data: { total: 0, completed: 0 }, isLoading: false, error: null, refetch: fetchStats };
+  }
+
   return { data, isLoading, error, refetch: fetchStats };
 }
+

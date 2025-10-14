@@ -1,4 +1,5 @@
 const express = require("express");
+const authMiddleware = require("../middleware/auth-middleware")
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -26,12 +27,30 @@ router.get("/", async (req, res) => {
   }
 });
 
+// -------------------------
+// GET /interviews/me/stats
+// User interview stats
+// -------------------------
+router.get("/me/stats", authMiddleware, async (req, res) => {
+  try {
+    const userId = Number(req.query.userId);
+    if (!userId) return res.status(400).json({ success: false, message: "User ID required" });
+
+    const total = await prisma.interview.count({ where: { userId } });
+    const completed = await prisma.interview.count({ where: { userId, status: "COMPLETED" } });
+
+    res.status(200).json({ success: true, message: "Stats fetched!", stats: { total, completed } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to fetch stats" });
+  }
+});
 
 // -------------------------
 // GET /interviews
 // Fetch all interviews or user-specific if userId query param provided
 // -------------------------
-router.get("/me", async (req, res) => {
+router.get("/me", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.query;
     const whereClause = userId ? { userId: Number(userId) } : {};
@@ -55,29 +74,10 @@ router.get("/me", async (req, res) => {
 
 
 // -------------------------
-// GET /interviews/me/stats
-// User interview stats
-// -------------------------
-router.get("/me/stats", async (req, res) => {
-  try {
-    const userId = Number(req.query.userId);
-    if (!userId) return res.status(400).json({ success: false, message: "User ID required" });
-
-    const total = await prisma.interview.count({ where: { userId } });
-    const completed = await prisma.interview.count({ where: { userId, status: "COMPLETED" } });
-
-    res.status(200).json({ success: true, message: "Stats fetched!", stats: { total, completed } });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Failed to fetch stats" });
-  }
-});
-
-// -------------------------
 // GET /interviews/booked-slots
 // Fetch booked slots for a mentor on a date
 // -------------------------
-router.get("/booked-slots", async (req, res) => {
+router.get("/booked-slots", authMiddleware, async (req, res) => {
   try {
     const { mentorId, date } = req.query;
     if (!mentorId || !date)
@@ -106,7 +106,7 @@ router.get("/booked-slots", async (req, res) => {
 // POST /interviews/book
 // Book a new interview
 // -------------------------
-router.post("/book", async (req, res) => {
+router.post("/book", authMiddleware, async (req, res) => {
   try {
     const { userId, mentorId, date, time, type = "AI", duration = 60 } = req.body;
     if (!userId || !date || !time)
@@ -141,7 +141,7 @@ router.post("/book", async (req, res) => {
 // PATCH /interviews/:id/status
 // Update interview status
 // -------------------------
-router.patch("/:id/status", async (req, res) => {
+router.patch("/:id/status", authMiddleware,  async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -164,3 +164,4 @@ router.patch("/:id/status", async (req, res) => {
 });
 
 module.exports = router;
+
