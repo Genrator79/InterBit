@@ -29,7 +29,7 @@ export default function LoginPage() {
         setUser(res.data.user);
         toast.success("Logged in successfully!", { duration: 2000 });
         // Redirect to home page
-        router.push("/");
+        router.push("/dashboard");
       } else {
         toast.error(res.data.message || "Login failed!", { duration: 2000 });
       }

@@ -18,7 +18,7 @@ function NoNextInterviews() {
             <CalendarIcon className="size-8 opacity-50" />
           </div>
           <p className="text-sm mb-3">No upcoming interviews</p>
-          <Link href="/interviews">
+          <Link href="/appointments">
             <Button size="sm" variant="outline" className="w-full">
               Schedule Your Next Interview
             </Button>

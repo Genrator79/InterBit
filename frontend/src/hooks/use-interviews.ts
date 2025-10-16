@@ -35,12 +35,14 @@ export function transformInterview(data: any) {
     userName: data.user?.username || "Unknown",
     userEmail: data.user?.email || "unknown@example.com",
     mentorName: data.mentor?.name || (data.type === "AI" ? "AI Mentor" : "Unknown"),
-    date: data.date ? new Date(data.date).toISOString() : null, // convert to ISO string
+    date: data.date ? new Date(data.date).toISOString() : null,
     time: data.time,
     type: data.type,
     duration: data.duration,
+    status: data.status, // ✅ added field (needed for filtering)
   };
 }
+
 
 // -----------------------------
 // Hooks with React Query style naming
@@ -122,7 +124,7 @@ export function useBookInterview() {
 
     try {
       const response = await axios.post("/interviews/book", payload);
-      return transformInterview(response.data);
+      return transformInterview(response.data.interview);
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.error || "Failed to book interview");

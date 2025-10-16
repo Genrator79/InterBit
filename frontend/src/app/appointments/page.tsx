@@ -13,6 +13,7 @@ import { INTERVIEW_TYPES } from "@/lib/utils";
 import { format } from "date-fns";
 import { useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
+import LoadingCard from "@/components/ui/LoadingCard";
 
 function InterviewsPage() {
     const { user } = useContext(UserContext);
@@ -34,7 +35,7 @@ function InterviewsPage() {
     const [bookedInterview, setBookedInterview] = useState<any>(null);
 
 
-    const { data: userInterviews = [] } = useUserInterviews();
+    const { data: userInterviews = [], isLoading } = useUserInterviews();
     const { book: bookInterview, isLoading: isBooking } = useBookInterview();
 
     // If user is loading, render nothing (safe)
@@ -165,18 +166,22 @@ function InterviewsPage() {
             )}
 
             {/* Show existing interviews */}
-            {userInterviews.length > 0 && (
+            {isLoading ? (
+                <div className="mb-8 max-w-7xl mx-auto px-6 py-8 flex justify-center">
+                    <LoadingCard message="Loading your upcoming interviews..." />
+                </div>
+            ) : userInterviews.length > 0 ? (
                 <div className="mb-8 max-w-7xl mx-auto px-6 py-8">
                     <h2 className="text-xl font-semibold mb-4">Your Upcoming Interviews</h2>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {userInterviews.map((interview) => (
                             <div key={interview.id} className="bg-card border rounded-lg p-4 shadow-sm">
                                 <div className="flex items-center gap-3 mb-3">
-                                    <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                    <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
                                         <img
                                             src={interview.mentorImageUrl}
                                             alt={interview.mentorName}
-                                            className="size-10 rounded-full"
+                                            className="size-10 rounded-full object-cover"
                                         />
                                     </div>
                                     <div>
@@ -194,7 +199,12 @@ function InterviewsPage() {
                         ))}
                     </div>
                 </div>
+            ) : (
+                <div className="mb-8 max-w-7xl mx-auto px-6 py-8 text-center text-muted-foreground">
+                    <p>No upcoming interviews found.</p>
+                </div>
             )}
+
         </>
     );
 }

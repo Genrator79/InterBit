@@ -31,7 +31,7 @@ export default function SignUpPage() {
         toast.success("Account created successfully!", { duration: 2000 });
         // Redirect to home page);
         // Redirect to home page
-        router.push("/");
+        router.push("/dashboard");
       } else {
         toast.error(res.data.message || "SignUp failed!", { duration: 2000 });
         // Redirect to home page);

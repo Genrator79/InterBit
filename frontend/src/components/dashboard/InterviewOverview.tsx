@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { BrainIcon, MessageSquareIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import LoadingCard from "@/components/ui/LoadingCard"
 
 export default function InterviewOverview() {
   const { user } = useContext(UserContext) as { user: User | null };
@@ -26,7 +27,7 @@ export default function InterviewOverview() {
 
       <CardContent>
         {isLoading ? (
-          <div className="text-center text-muted-foreground py-6">Loading stats...</div>
+          <LoadingCard message="Loading Stats ..." />
         ) : error ? (
           <div className="text-center text-red-500 py-6">{error}</div>
         ) : (
@@ -62,7 +63,7 @@ export default function InterviewOverview() {
                         Try AI Interview
                       </Button>
                     </Link>
-                    <Link href="/interviews">
+                    <Link href="/appointments">
                       <Button size="sm" variant="outline">
                         Book Interview
                       </Button>

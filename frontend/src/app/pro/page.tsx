@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { CrownIcon } from "lucide-react";
 import { UserContext } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import LoadingCard from "@/components/ui/LoadingCard";
 
 export default function ProPage() {
     const { user } = useContext(UserContext);
@@ -20,7 +21,7 @@ export default function ProPage() {
     }, [user, router]);
 
     // Show loading while user is undefined (still loading)
-    if (user === undefined) return <div className="p-8 text-center">Loading...</div>;
+    if (user === undefined) return <LoadingCard message="Loading Page ..."/>
     if (user === null) return null; // redirect in progress
 
     return (

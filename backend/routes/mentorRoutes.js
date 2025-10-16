@@ -6,7 +6,7 @@ const isAdminUser = require("../middleware/admin-middleware");
 const router = express.Router();
 
 // get all mentors
-router.get("/", authMiddleware, isAdminUser, getAllMentors);
+router.get("/", authMiddleware, getAllMentors);
 
 router.post("/", authMiddleware, isAdminUser, createMentor);
 

@@ -2,27 +2,44 @@
 
 import { useUserInterviews } from "@/hooks/use-interviews";
 import { parseISO, isAfter, isSameDay, format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import Link from "next/link";
 import { CalendarIcon, ClockIcon, UserIcon } from "lucide-react";
-import NoNextInterviews from "./NoNextInterview"
+import NoNextInterviews from "./NoNextInterview";
+import LoadingCard from "../ui/LoadingCard";
 
 export default function NextInterview() {
-    const { user, data: interviews, isLoading, refetch } = useUserInterviews();
+    const { user, data: interviews, isLoading, error, refetch } = useUserInterviews();
 
-    if (!user) return null; // user not logged in
-    if (isLoading) return <p className="text-sm text-muted-foreground">Loading interviews...</p>;
+    // Handle auth and loading state
+    if (!user) return null;
+    if (isLoading) return <LoadingCard message="Loading your next interview..." />;
+    if (error) return <p className="text-sm text-red-500">{error}</p>;
 
-    // filter upcoming scheduled interviews
-    const upcomingInterviews = interviews.filter(interview => {
+    // Filter for upcoming scheduled interviews
+    const upcomingInterviews = interviews.filter((interview) => {
+        if (!interview.date) return false; // skip if no date
         const date = parseISO(interview.date);
         const today = new Date();
-        const isUpcoming = isSameDay(date, today) || isAfter(date, today);
-        return isUpcoming && interview.status === "SCHEDULED";
+
+        // combine date + time into a comparable datetime
+        const interviewDateTime = new Date(interview.date);
+        if (interview.time) {
+            const [hours, minutes] = interview.time.split(":").map(Number);
+            interviewDateTime.setHours(hours, minutes, 0, 0);
+        }
+
+        return (
+            interview.status === "SCHEDULED" &&
+            (isSameDay(interviewDateTime, today) || isAfter(interviewDateTime, today))
+        );
     });
 
-    const nextInterview = upcomingInterviews[0];
+    if (upcomingInterviews.length === 0) return <NoNextInterviews />;
 
-    if (!nextInterview) return <NoNextInterviews />;
+    // The nearest upcoming interview (already sorted by backend)
+    const nextInterview = upcomingInterviews[0];
 
     const interviewDate = parseISO(nextInterview.date);
     const formattedDate = format(interviewDate, "EEEE, MMMM d, yyyy");
@@ -36,6 +53,7 @@ export default function NextInterview() {
                     Next Interview
                 </CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-4">
                 {/* Status Badge */}
                 <div className="flex items-center justify-between">
@@ -52,6 +70,7 @@ export default function NextInterview() {
 
                 {/* Interview Details */}
                 <div className="space-y-3">
+                    {/* Mentor Name */}
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                             <UserIcon className="size-4 text-primary" />
@@ -59,21 +78,27 @@ export default function NextInterview() {
                         <div>
                             <p className="font-medium text-sm">{nextInterview.mentorName}</p>
                             <p className="text-xs text-muted-foreground">
-                                {nextInterview.type === "AI" ? "AI Mock Interview" : "Live session with Mentor"}
+                                {nextInterview.type === "AI"
+                                    ? "AI Mock Interview"
+                                    : "Live session with Mentor"}
                             </p>
                         </div>
                     </div>
 
+                    {/* Date */}
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                             <CalendarIcon className="size-4 text-primary" />
                         </div>
                         <div>
                             <p className="font-medium text-sm">{formattedDate}</p>
-                            <p className="text-xs text-muted-foreground">{isToday ? "Today" : format(interviewDate, "EEEE")}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {isToday ? "Today" : format(interviewDate, "EEEE")}
+                            </p>
                         </div>
                     </div>
 
+                    {/* Time */}
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                             <ClockIcon className="size-4 text-primary" />
@@ -93,6 +118,17 @@ export default function NextInterview() {
                     </p>
                 )}
             </CardContent>
+
+                {upcomingInterviews.length > 1 && (
+                    <div className="text-center mt-3">
+                        <Link href="/upcomingAppoint">
+                            <Button className="bg-primary text-white hover:bg-primary/80">
+                                View All Upcoming Interviews
+                            </Button>
+                        </Link>
+                    </div>
+                )}
+
         </Card>
     );
 }

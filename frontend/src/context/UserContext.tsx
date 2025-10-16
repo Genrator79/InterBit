@@ -1,6 +1,6 @@
-// src/context/UserContext.tsx
 "use client";
 
+import { useRouter } from "next/navigation";
 import { createContext, useState, useEffect, ReactNode } from "react";
 
 export interface User {
@@ -28,6 +28,7 @@ interface Props {
 
 export const UserProvider = ({ children }: Props) => {
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const router = useRouter();
 
   // Load user from localStorage on initial render
   useEffect(() => {
@@ -52,8 +53,13 @@ export const UserProvider = ({ children }: Props) => {
     }
   }, [user]);
 
-  // Helper to log out
-  const logout = () => setUser(null);
+  // Enhanced logout
+  const logout = () => {
+    setUser(null);                     // clear user context
+    localStorage.removeItem("user");    // remove user from storage
+    localStorage.removeItem("accessToken"); // remove token from storage
+    router.push('/login');
+  };
 
   return (
     <UserContext.Provider value={{ user, setUser, logout }}>
