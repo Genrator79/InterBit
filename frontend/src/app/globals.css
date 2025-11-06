@@ -6,48 +6,132 @@
 
 /* Bounce the whole card gently */
 @keyframes bounce-slow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
 }
+
 .animate-bounce-slow {
   animation: bounce-slow 1.5s ease-in-out infinite;
 }
 
 /* Breathing effect for the spinner and dots */
 @keyframes pulse-scale {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
+
 .animate-pulse-scale {
   animation: pulse-scale 1.2s ease-in-out infinite;
 }
 
 /* Bouncing dots */
 @keyframes bounce-delay {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+
+  40% {
+    transform: scale(1);
+  }
 }
+
 .animate-bounce-delay {
   animation: bounce-delay 1.4s infinite ease-in-out both;
 }
+
 .animation-delay-150 {
   animation-delay: 0.15s;
 }
+
 .animation-delay-300 {
   animation-delay: 0.3s;
 }
 
 /* Animated gradient background for card */
 @keyframes gradient-move {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
+
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradient-move 6s ease infinite;
 }
 
+/* AI Interviewer Card component styles */
+.call-view {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.card-interviewer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.75rem;
+  height: 400px;
+  border-radius: 0.5rem;
+  flex: 1;
+  width: 100%;
+
+  background: linear-gradient(to bottom, #171532, #08090D);
+  /* blue-gradient-dark */
+  border: 2px solid rgba(202, 197, 254, 0.5);
+  /* primary-200/50 */
+
+  justify-content: center;
+  align-items: center;
+}
+
+.card-interviewer .avatar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 120px;
+  width: 120px;
+  border-radius: 100%;
+  background: linear-gradient(to left, #FFFFFF, #CAC5FE);
+  /* blue-gradient */
+}
+
+.card-interviewer h3 {
+  text-align: center;
+  color: white;
+  margin-top: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
 
 
 
@@ -223,10 +307,18 @@ body {
   letter-spacing: var(--tracking-normal);
 }
 
+@layer utilities {
+  .blue-gradient {
+    background: linear-gradient(to bottom, hsl(var(--background)), hsl(var(--muted)));
+  }
+}
+
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -234,8 +326,289 @@ body {
 
 /* Add cursor pointer to buttons by default - this is coming from tailwind docs */
 @layer base {
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+@layer components {
+
+  /* ✅ Call Button */
+  .btn-call {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.75rem;
+    /* px-7 py-3 */
+    font-weight: 700;
+    font-size: 0.875rem;
+    /* text-sm */
+    line-height: 1.25rem;
+    /* leading-5 */
+    color: #ffffff;
+    /* text-white */
+    background-color: #28d055;
+    /* your "success-100" replacement */
+    border: 1px solid transparent;
+    border-radius: 9999px;
+    /* rounded-full */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.15s ease-in-out;
+    min-width: 7rem;
+    /* min-w-28 */
+    cursor: pointer;
+    overflow: visible;
+  }
+
+  .btn-call .span {
+    background-color: #0eed49;
+    /* same as button */
+    height: 85%;
+    width: 65%;
+  }
+
+  .btn-call:hover,
+  .btn-call:active {
+    background-color: #056f21;
+    /* your "success-200" replacement */
+  }
+
+  /* ✅ Disconnect Button */
+  .btn-disconnect {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.75rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #ffffff;
+    background-color: #EF4444;
+    /* destructive-100 */
+    border: 1px solid transparent;
+    border-radius: 9999px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.15s ease-in-out;
+    min-width: 7rem;
+    cursor: pointer;
+  }
+
+  .btn-disconnect:hover,
+  .btn-disconnect:active {
+    background-color: #B91C1C;
+    /* destructive-200 */
+  }
+
+  /* ✅ Upload Button */
+  .btn-upload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    /* 1.5 */
+    min-height: 3.5rem;
+    /* min-h-14 */
+    width: 100%;
+    padding: 0 1.25rem;
+    /* px-5 */
+    border-radius: 0.375rem;
+    /* rounded-md */
+    border: 1px solid #E5E7EB;
+    /* border-input */
+    background-color: #222222;
+    /* dark-200 */
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  /* ✅ Primary Button */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    /* min-h-10 */
+    padding: 0 1.25rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    background-color: #E78A53;
+    /* primary-200 */
+    color: #121113;
+    /* dark-100 */
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background-color: rgba(231, 138, 83, 0.8);
+  }
+
+  /* ✅ Secondary Button */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0 1.25rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    background-color: #222222;
+    /* dark-200 */
+    color: #E78A53;
+    /* primary-200 */
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background-color: rgba(34, 34, 34, 0.8);
+  }
+
+
+  .call-view {
+    display: flex;
+    flex-direction: column;
+    /* default column on small screens */
+    gap: 2.5rem;
+    /* gap-10 */
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .call-view h3 {
+    text-align: center;
+    margin-top: 1.25rem;
+    /* mt-5 */
+    color: oklch(0.205 0 0);
+    /* primary color */
+  }
+
+  .call-view .card-interviewer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    /* gap-2 */
+    padding: 1.75rem;
+    /* p-7 */
+    height: 400px;
+    border-radius: 0.5rem;
+    /* rounded-lg */
+    flex: 1;
+    width: 100%;
+    border: 2px solid oklch(0.205 0 0 / 50%);
+    /* primary-200/50 */
+    background: linear-gradient(to bottom, #171532, #08090D);
+    /* blue-gradient-dark */
+  }
+
+  .call-view .avatar {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    width: 120px;
+    border-radius: 9999px;
+    /* rounded-full */
+    background: linear-gradient(to left, #FFFFFF, #CAC5FE);
+    /* blue-gradient */
+  }
+
+  /* Animate Speak (AI voice effect) */
+  @keyframes speakPulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 oklch(0.205 0 0 / 0.4);
+      /* primary color */
+    }
+
+    50% {
+      transform: scale(1.08);
+      box-shadow: 0 0 18px 6px oklch(0.205 0 0 / 0.25);
+      /* glow effect */
+    }
+
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 oklch(0.205 0 0 / 0.4);
+    }
+  }
+
+  .animate-speak {
+    @apply absolute inline-flex size-5/6 animate-ping rounded-full bg-white/50 opacity-75;
+  }
+
+
+
+  .call-view .card-border {
+    border-radius: 1rem;
+    /* rounded-2xl */
+    padding: 0.125rem;
+    /* p-0.5 */
+    flex: 1;
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(to bottom, #4B4D4F, #4B4D4F33);
+    /* border-gradient */
+  }
+
+  .call-view .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    /* gap-2 */
+    justify-content: center;
+    align-items: center;
+    padding: 1.75rem;
+    /* p-7 */
+    border-radius: 1rem;
+    /* rounded-2xl */
+    min-height: 100%;
+    background: linear-gradient(to bottom, #1A1C20, #08090D);
+    /* dark-gradient */
+  }
+}
+
+@utility dark-gradient {
+  @apply bg-gradient-to-b from-[#1A1C20] to-[#08090D];
+}
+
+@utility border-gradient {
+  @apply bg-gradient-to-b from-[#4B4D4F] to-[#4B4D4F33];
+}
+
+@utility pattern {
+  @apply bg-[url('/pattern.png')] bg-top bg-no-repeat;
+}
+
+@utility blue-gradient-dark {
+  @apply bg-gradient-to-b from-[#171532] to-[#08090D];
+}
+
+@utility blue-gradient {
+  @apply bg-gradient-to-l from-[#FFFFFF] to-[#CAC5FE];
+}
+
+@utility flex-center {
+  @apply flex items-center justify-center;
+}
+
+@utility animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
