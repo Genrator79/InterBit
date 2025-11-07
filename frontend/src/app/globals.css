@@ -84,6 +84,52 @@
   animation: gradient-move 6s ease infinite;
 }
 
+
+
+/* Caption animation */
+@keyframes captionChange {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-captionChange {
+  animation: captionChange 0.35s ease-out forwards;
+}
+
+/* Blue-black glass speech caption box */
+.caption-box {
+  background: linear-gradient(135deg,
+      rgba(0, 15, 40, 0.55) 0%,
+      /* deep blue-black start */
+      rgba(10, 30, 60, 0.65) 40%,
+      /* mid blue */
+      rgba(0, 0, 0, 0.55) 100%
+      /* fade to dark black */
+    );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  /* subtle white edge border */
+  border-radius: 14px;
+
+  /* soft white glow — dim */
+  box-shadow:
+    0 0 6px rgba(255, 255, 255, 0.05),
+    0 0 18px rgba(255, 255, 255, 0.08);
+
+  transition: all 0.3s ease;
+}
+
+
+
 /* AI Interviewer Card component styles */
 .call-view {
   display: flex;
@@ -570,6 +616,18 @@ body {
     min-height: 100%;
     background: linear-gradient(to bottom, #1A1C20, #08090D);
     /* dark-gradient */
+  }
+
+  .transcript-border {
+    @apply border border-gray-700 rounded-md p-3 mt-2;
+  }
+
+  .transcript {
+    @apply text-white text-sm;
+  }
+
+  .transcript-opacity {
+    @apply opacity-100;
   }
 }
 

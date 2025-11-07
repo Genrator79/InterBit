@@ -24,12 +24,19 @@ const Agent = () => {
     }
   }, [user, router]);
 
+
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const isSpeaking = true;
+  const messages = [
+    'What is your name?',
+    'My name is Jhon dow'
+  ]
+
+  const lastMessage = messages[messages.length - 1]
 
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
-    setTimeout(()=>{
+    setTimeout(() => {
       setCallStatus(CallStatus.ACTIVE);
     }, 2000)
   }
@@ -67,23 +74,35 @@ const Agent = () => {
           </div>
         </div>
       </div>
+
+      {messages.length > 0 && (
+        <div className="w-full flex justify-center mt-4 px-4">
+          <div className="caption-box p-4 max-w-lg w-full">
+            <p key={lastMessage} className="text-white animate-captionChange text-sm sm:text-base font-medium">
+              {lastMessage}
+            </p>
+          </div>
+        </div>
+      )}
+
+
       <div className="w-full flex justify-center">
         {callStatus !== "ACTIVE" ? (
-          <button className="relative btn-call" onClick={()=> handleCall()}>
-            {/* <span
+          <button className="relative btn-call" onClick={() => handleCall()}>
+            <span
               className={cn(
                 "absolute animate-ping rounded-full opacity-75",
                 callStatus !== "CONNECTING" && "hidden"
               )}
-            /> */}
+            />
             <span className="relative">
               {callStatus === "INACTIVE" || callStatus === "FINISHED"
                 ? "Call"
-                : ". . ."} 
+                : ". . ."}
             </span>
           </button>
         ) : (
-          <button className="btn-disconnect" onClick={()=>handleDisconnect()}>
+          <button className="btn-disconnect" onClick={() => handleDisconnect()}>
             End
           </button>
         )}

@@ -43,26 +43,32 @@ model Mentor {
 
 model Interview {
   id           String           @id @default(cuid())
+  role         String?
   type         String            @default("AI")
-  date         DateTime
-  time         String           // "14:30"
-  duration     Int              @default(60) // in minutes
+  level        String?
+  techstack    String[]
+  questions    String[]
+  finalized    Boolean          @default(false)
+  coverImage   String?
+
+  date         DateTime?
+  time         String?
+  duration     Int              @default(60)
   status       InterviewStatus  @default(SCHEDULED)
-  feedback     String?          // notes/feedback after interview
-  score        Int?             // optional evaluation score
+  feedback     String?
+  score        Int?
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
-  // foreign keys
-  userId    Int
-  mentorId  String?            // null if AI interview
+  userId       Int
+  mentorId     String?
 
-  // relationships
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mentor    Mentor? @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mentor       Mentor?  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
 
   @@map("interviews")
 }
+
 
 enum UserRole {
   USER

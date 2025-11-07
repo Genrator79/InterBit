@@ -4,87 +4,91 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("⏳ Seeding demo data...");
 
-  // Clear existing interviews
+  // Clear existing
   await prisma.interview.deleteMany();
-  
+  await prisma.mentor.deleteMany();
+  await prisma.user.deleteMany();
+
   // -------------------------
-  // 1️⃣ Create or Upsert Demo User
+  // 1️⃣ Create Demo User
   // -------------------------
-  const user = await prisma.user.upsert({
-    where: { email: "demo.user@example.com" },
-    update: {},
-    create: {
+  const user = await prisma.user.create({
+    data: {
       username: "Demo User",
       email: "demo.user@example.com",
-      password: "demo123", // hash if needed
+      password: "demo123",
       role: "USER",
     },
   });
-  console.log("✅ Demo user created or found:", user.username);
+
+  console.log("✅ User created:", user.email);
 
   // -------------------------
-  // 2️⃣ Create or Upsert Demo Mentor
+  // 2️⃣ Create Demo Mentor
   // -------------------------
-  const mentor = await prisma.mentor.upsert({
-    where: { email: "demo.mentor@example.com" },
-    update: {},
-    create: {
+  const mentor = await prisma.mentor.create({
+    data: {
       name: "Demo Mentor",
       email: "demo.mentor@example.com",
       speciality: "AI/ML",
+      bio: "Expert in Machine Learning & AI interviews.",
       imageUrl: "",
-      bio: "Expert in AI and Machine Learning",
       isActive: true,
     },
   });
-  console.log("✅ Demo mentor created or found:", mentor.name);
+
+  console.log("✅ Mentor created:", mentor.email);
 
   // -------------------------
   // 3️⃣ Create Demo Interviews
   // -------------------------
   const interviews = [
+    // ✅ Live human mentor interview
     {
-      userId: user.id,
-      mentorId: mentor.id,
+      role: "Machine Learning Engineer",
+      type: "HUMAN",
+      level: "Mid",
+      techstack: ["Python", "TensorFlow", "ML Algorithms"],
+      questions: [],
+      finalized: false,
+      coverImage: null,
       date: new Date(),
       time: "10:00 AM",
-      type: "HUMAN",
       duration: 60,
       status: "SCHEDULED",
-    },
-    {
-      userId: user.id,
-      mentorId: null, // AI interview
-      date: new Date(),
-      time: "2:00 PM",
-      type: "AI",
-      duration: 45,
-      status: "SCHEDULED",
-    },
-    {
       userId: user.id,
       mentorId: mentor.id,
+    },
+    // ✅ AI-generated interview sample
+    {
+      role: "Frontend Developer",
+      type: "AI",
+      level: "Junior",
+      techstack: ["React", "JavaScript", "HTML", "CSS"],
+      questions: [
+        "Explain virtual DOM.",
+        "What is closure in JavaScript?",
+        "When do you use useEffect in React?",
+      ],
+      finalized: true,
+      coverImage: "",
       date: new Date(),
-      time: "4:00 PM",
-      type: "HUMAN",
-      duration: 30,
-      status: "COMPLETED",
+      time: "2:00 PM",
+      duration: 45,
+      status: "SCHEDULED",
+      userId: user.id,
+      mentorId: null,
     },
   ];
 
   for (const data of interviews) {
-    const interview = await prisma.interview.create({
-      data,
-      include: { user: true, mentor: true },
-    });
-    console.log(
-      `✅ Interview created: ${interview.user.username} ↔ ${interview.mentor?.name || "AI Interview"} (${interview.type}, ${interview.status})`
-    );
+    const interview = await prisma.interview.create({ data });
+    console.log(`✅ Interview created: ${interview.role} (${interview.type})`);
   }
 
-  console.log("🎉 Seeder finished!");
+  console.log("🎉 Seeding completed successfully!");
 }
 
 main()
-  .catch((e) => console.error(e))
+  .catch((e) => console.error("❌ Seed error:", e))
   .finally(() => prisma.$disconnect());
