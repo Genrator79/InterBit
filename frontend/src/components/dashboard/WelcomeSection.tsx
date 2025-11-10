@@ -21,7 +21,7 @@ export default function WelcomeSection() {
 
         <div>
           <h1 className="text-4xl font-bold mb-2">
-            Good {greeting}, {user?.username || "Guest"}!
+            Good {greeting},{user?.username || "Guest"}!
           </h1>
           <p className="text-muted-foreground">
             Your personal AI interview assistant is ready to help you practice and prepare for success.
@@ -31,7 +31,7 @@ export default function WelcomeSection() {
 
       <div className="lg:flex hidden items-center justify-center size-32 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full">
         <Image
-          src="/logo.png"
+          src="/logo.svg"
           alt="Interview Platform"
           width={64}
           height={64}

@@ -45,13 +45,13 @@ function Navbar() {
             </Link>
 
             <Link
-              href="/voice"
+              href="/ai-interview"
               className={`flex items-center gap-2 transition-colors hover:text-foreground ${
                 pathname === "/voice" ? "text-primary" : "text-muted-foreground"
               }`}
             >
               <MicIcon className="w-4 h-4" />
-              <span className="hidden md:inline">Voice</span>
+              <span className="hidden md:inline">Interview</span>
             </Link>
             <Link
               href="/pro"

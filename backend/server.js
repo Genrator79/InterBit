@@ -5,6 +5,7 @@ require('dotenv').config();
 const userRoute = require("./routes/userRoutes");
 const mentorRoute = require('./routes/mentorRoutes')
 const interviewRoute = require('./routes/interviewRoutes')
+const aiInterviewRoute = require('./routes/ai-interviewRoute')
 
 const app = express();
 
@@ -25,6 +26,9 @@ app.use('/api/mentors', mentorRoute);
 
 //interview route
 app.use("/api/interviews", interviewRoute);
+
+//aiInterviewRoute
+app.use("/api/ai-interviews", aiInterviewRoute);
 
 // Start server
 app.listen(process.env.PORT, () => {

@@ -29,7 +29,7 @@ const Agent = () => {
   const isSpeaking = true;
   const messages = [
     'What is your name?',
-    'My name is Jhon dow'
+    `My name is ${user?.username}`
   ]
 
   const lastMessage = messages[messages.length - 1]

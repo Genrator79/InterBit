@@ -8,8 +8,8 @@ function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Image
-                src="/logo.png"
-                alt="DentWise Logo"
+                src="/logo.svg"
+                alt="InterBit"
                 width={32}
                 height={32}
                 className="w-8 h-8"

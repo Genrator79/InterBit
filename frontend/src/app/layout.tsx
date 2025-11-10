@@ -15,8 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DentWise - AI Powered Dental Assistant",
-  description: "Get instant dental advice through voice calls with our AI assistant. Available 24/7.",
+  title: "InterBit - AI-Powered Interview Platform",
+  description: "Book mock interviews with top mentors or practice with our AI interviewer. Get instant feedback, performance insights, and skill recommendations — all in one place.",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

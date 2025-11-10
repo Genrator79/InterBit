@@ -8,13 +8,23 @@ export interface Interview {
   userEmail: string;
   mentorName: string;
   mentorImageUrl?: string;
-  date: string;
-  time: string;
+  date?: string;  // Prisma date can be null
+  time?: string;  // Prisma time can be null
   type: "AI" | "HUMAN";
   status: "SCHEDULED" | "COMPLETED" | "CANCELLED";
   duration: number;
   feedback?: string;
   score?: number;
+
+  // Newly added optional fields from schema
+  role?: string;
+  level?: string;
+  techstack?: string[];
+  questions?: string[];
+  finalized?: boolean;
+  coverImage?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BookInterviewInput {
@@ -23,25 +33,40 @@ export interface BookInterviewInput {
   time: string;
   type?: "AI" | "HUMAN";
   duration?: number;
+  role?: string;
+  level?: string;
+  techstack?: string[];
 }
 
+
 // Transform backend response to frontend-friendly structure
-function transformInterview(interview: any): Interview {
+export function transformInterview(interview: any): Interview {
   return {
     id: interview.id,
-    userName: interview.user.username,
-    userEmail: interview.user.email,
+    userName: interview.user?.username || "Unknown User",
+    userEmail: interview.user?.email || "",
     mentorName: interview.mentor?.name || "AI Interview",
     mentorImageUrl: interview.mentor?.imageUrl || "",
-    date: interview.date,
-    time: interview.time,
-    type: interview.type,
-    status: interview.status,
+    date: interview.date ? new Date(interview.date).toISOString() : undefined,
+    time: interview.time || "",
+    type: (interview.type === "HUMAN" ? "HUMAN" : "AI") as "AI" | "HUMAN",
+    status: interview.status as "SCHEDULED" | "COMPLETED" | "CANCELLED",
     duration: interview.duration,
-    feedback: interview.feedback,
-    score: interview.score,
+    feedback: interview.feedback || "",
+    score: interview.score ?? undefined,
+
+    // new fields (optional)
+    role: interview.role || "",
+    level: interview.level || "",
+    techstack: interview.techstack || [],
+    questions: interview.questions || [],
+    finalized: interview.finalized ?? false,
+    coverImage: interview.coverImage || "",
+    createdAt: interview.createdAt ? new Date(interview.createdAt).toISOString() : undefined,
+    updatedAt: interview.updatedAt ? new Date(interview.updatedAt).toISOString() : undefined,
   };
 }
+
 
 // -----------------------------
 // Hooks and Functions
