@@ -20,7 +20,7 @@ const page = () => {
           Interview Generation
         </h3>
 
-        <Agent username="You" userId="user1" tupe="generate" />
+        <Agent username="You" userId="user1" type="generate" />
 
       </>
 

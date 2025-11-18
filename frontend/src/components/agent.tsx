@@ -6,6 +6,12 @@ import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+interface AgentProps {
+  username: string;
+  userId: string;
+  type: string;  
+}
+
 enum CallStatus {
   INACTIVE = 'INACTIVE',
   CONNECTING = 'CONNECTING',
@@ -13,7 +19,7 @@ enum CallStatus {
   FINISHED = 'FINISHED'
 }
 
-const Agent = () => {
+const Agent = ({ username, userId, type }: AgentProps) => {
 
   const { user } = useContext(UserContext);
   const router = useRouter();
