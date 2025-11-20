@@ -13,11 +13,15 @@ export interface Interview {
   mentorImageUrl?: string;
   date: string;
   time: string;
-  type: "AI" | "HUMAN";
-  status: "SCHEDULED" | "COMPLETED" | "CANCELLED";
-  duration: number;
   feedback?: string;
   score?: number;
+  // interview info
+  role: string;
+  techstack: string[];
+  createdAt: string; // or Date
+  type: string;
+  status: "SCHEDULED" | "COMPLETED" | "CANCELLED";
+  duration: number;
 }
 
 export interface BookInterviewInput {
@@ -32,14 +36,19 @@ export interface BookInterviewInput {
 export function transformInterview(data: any) {
   return {
     id: data.id,
+    role: data.role,
+    type: data.type,
+    techstack: data.techstack,
+    createdAt: data.createdAt,
+
+    // Existing fields you were using
     userName: data.user?.username || "Unknown",
     userEmail: data.user?.email || "unknown@example.com",
     mentorName: data.mentor?.name || (data.type === "AI" ? "AI Mentor" : "Unknown"),
     date: data.date ? new Date(data.date).toISOString() : null,
     time: data.time,
-    type: data.type,
     duration: data.duration,
-    status: data.status, // ✅ added field (needed for filtering)
+    status: data.status,
   };
 }
 
@@ -226,4 +235,5 @@ export function useUserInterviewStats() {
 
   return { data, isLoading, error, refetch: fetchStats };
 }
+
 

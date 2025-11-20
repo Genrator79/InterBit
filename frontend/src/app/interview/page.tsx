@@ -1,8 +1,25 @@
+"use client";
+
+
 import Image from 'next/image'
 import Link from 'next/link'
 import Agent from '@/components/agent';
+import { useContext, useEffect } from "react";
+import { UserContext } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 const page = () => {
+
+  const { user } = useContext(UserContext);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user === null) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
+
   return (
     <div className="mx-auto max-w-7xl flex flex-col gap-12 my-12 px-6">
       
@@ -19,9 +36,9 @@ const page = () => {
         <h3 className="text-4xl font-bold tracking-tight">
           Interview Generation
         </h3>
-
-        <Agent username="You" userId="user1" type="generate" />
-
+        {user && 
+          <Agent username={user && user.username} userId={user.id} type="generate" />
+        }
       </>
 
     </div>
