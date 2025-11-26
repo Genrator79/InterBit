@@ -95,4 +95,38 @@ router.get("/", async (req, res) => {
     }
 });
 
+
+// ===========================
+//  GET AI INTERVIEW BY ID
+// ===========================
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const interview = await prisma.interview.findUnique({
+      where: { id }, // cuid → STRING ID
+      include: { user: true }
+    });
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: "AI Interview not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      interview
+    });
+  } catch (error) {
+    console.error("Error fetching AI interview:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch AI interview"
+    });
+  }
+});
+
+
 module.exports = router;
