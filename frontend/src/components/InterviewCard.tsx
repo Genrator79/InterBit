@@ -92,7 +92,7 @@ export default function InterviewCard({
 
       {/* CTA Button */}
       <Button asChild className="btn-primary w-full mt-auto">
-        <Link href={`/ai-interviews/${interviewId}`}>View Interview</Link>
+        <Link href={`/interview/${interviewId}`}>View Interview</Link>
       </Button>
     </div>
   );
