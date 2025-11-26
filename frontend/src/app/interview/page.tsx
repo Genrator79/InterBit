@@ -37,7 +37,7 @@ const page = () => {
           Interview Generation
         </h3>
         {user && 
-          <Agent username={user && user.username} userId={user.id} type="generate" />
+          <Agent username={user.username} userId={user.id} type="generate" interviewId='0' questions={[]}/>
         }
       </>
 
