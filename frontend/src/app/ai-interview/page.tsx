@@ -28,7 +28,7 @@ export default function HomePage() {
     } = useUserInterviews();
 
     const reversedInterviews = [...userInterviews].reverse();
-    // ⭐ FIX: your hook returns full response
+   
     const {
         data: allInterviewsResponse,
         isLoading: loadingAllInterviews,

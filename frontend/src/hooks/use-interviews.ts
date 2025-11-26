@@ -13,6 +13,7 @@ export interface Interview {
   mentorImageUrl?: string;
   date: string;
   time: string;
+  questions: String[];
   feedback?: string;
   score?: number;
   // interview info
@@ -33,24 +34,37 @@ export interface BookInterviewInput {
   duration?: number;    // optional, will default to 60 if not provided
 }
 
-export function transformInterview(data: any) {
+export function transformInterview(data: any): Interview {
   return {
     id: data.id,
     role: data.role,
     type: data.type,
-    techstack: data.techstack,
-    createdAt: data.createdAt,
+    techstack: data.techstack || [],
+    createdAt: data.createdAt || "",
+    status: data.status,
+    duration: data.duration,
 
-    // Existing fields you were using
+    // MUST fix: real questions
+    questions: data.questions || [],
+
+    // User info
     userName: data.user?.username || "Unknown",
     userEmail: data.user?.email || "unknown@example.com",
+
+    // Mentor info
     mentorName: data.mentor?.name || (data.type === "AI" ? "AI Mentor" : "Unknown"),
-    date: data.date ? new Date(data.date).toISOString() : null,
-    time: data.time,
-    duration: data.duration,
-    status: data.status,
+    mentorImageUrl: data.mentor?.imageUrl || null,
+
+    // Interview schedule
+    date: data.date || "",
+    time: data.time || "",
+
+    // Feedback
+    feedback: data.feedback || null,
+    score: data.score || null,
   };
 }
+
 
 
 // -----------------------------
@@ -145,7 +159,6 @@ export function useBookInterview() {
 
   return { book, isLoading, error };
 }
-
 
 export function useUpdateInterviewStatus() {
   const [isLoading, setIsLoading] = useState(false);

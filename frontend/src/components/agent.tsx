@@ -9,8 +9,10 @@ import { vapi } from "@/lib/vapi.sdk";
 
 interface AgentProps {
   username: string;
-  userId: Number;
+  userId: number;
   type: string;
+  interviewId: string;
+  questions: String[];
 }
 
 enum CallStatus {
