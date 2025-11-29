@@ -99,6 +99,7 @@ function InterviewsPage() {
         }
     };
 
+    console.log("userInterviews:", userInterviews);
 
     return (
         <>
@@ -191,7 +192,12 @@ function InterviewsPage() {
                                 </div>
                                 <div className="space-y-1 text-sm">
                                     <p className="text-muted-foreground">
-                                        📅 {format(new Date(interview.date), "MMM d, yyyy")}
+                                        📅 {interview.date
+                                            ? format(new Date(interview.date), "MMM d, yyyy")
+                                            : "Date not set"}
+                                    </p>
+                                    <p className="text-muted-foreground">
+                                        🕐 {interview.time || "Time not set"}
                                     </p>
                                     <p className="text-muted-foreground">🕐 {interview.time}</p>
                                 </div>
