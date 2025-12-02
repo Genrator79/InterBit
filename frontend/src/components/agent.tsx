@@ -99,34 +99,30 @@ const Agent = ({ username, userId, type }: AgentProps) => {
   useEffect(() => {
     if (callStatus === CallStatus.FINISHED) {
       if (type === "generate") {
-        router.push("/");
+        router.push("/ai-interview");
       }
     }
   }, [messages, callStatus, router, type, userId]);
 
 
-  // const handleCall = async () => {
-  //   setCallStatus(CallStatus.CONNECTING);
-
-  //   if (type === "generate") {
-  //     await vapi.start(
-  //       undefined,  // assistant (not needed)
-  //       undefined,  // assistantOverrides
-  //       undefined,  // squad (not using)
-  //       process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, // workflow ID here
-  //       {
-  //         variableValues: {
-  //           username: username,
-  //           userid: userId
-  //         }
-  //       }
-  //     );
-  //   }
-  // };
-
-  const handleCall = async() =>{
+  const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
-  }
+
+    if (type === "generate") {
+      await vapi.start(
+        undefined,  // assistant (not needed)
+        undefined,  // assistantOverrides
+        undefined,  // squad (not using)
+        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, // workflow ID here
+        {
+          variableValues: {
+            username: username,
+            userid: userId
+          }
+        }
+      );
+    }
+  };
 
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
@@ -187,7 +183,7 @@ const Agent = ({ username, userId, type }: AgentProps) => {
               )}
             />
             <span className="relative">
-              {iscallInactiveorFinished ? "Call" : "Sorry to Disappointed, Not conneting to Vapi due to Credit Constrain😅😅"}
+              {iscallInactiveorFinished ? "Call" : "..."}
             </span>
           </button>
         ) : (

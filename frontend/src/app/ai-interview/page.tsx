@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,6 @@ import InterviewCard from "@/components/InterviewCard";
 import { useUserInterviews, useGetAllInterviews } from "@/hooks/use-interviews";
 import LoadingCard from "@/components/ui/LoadingCard";
 import Navbar from "@/components/Navbar";
-
 
 export default function HomePage() {
     const { user } = useContext(UserContext);
@@ -28,13 +27,50 @@ export default function HomePage() {
     } = useUserInterviews();
 
     const reversedInterviews = [...userInterviews].reverse();
-   
+
     const {
         data: allInterviewsResponse,
         isLoading: loadingAllInterviews,
     } = useGetAllInterviews();
 
-    // Prevent flashing undefined state
+    // -----------------------------
+    // ✅ FILTER STATES
+    // -----------------------------
+    const [selectedRole, setSelectedRole] = useState("");
+    const [selectedType, setSelectedType] = useState("");
+    const [selectedTech, setSelectedTech] = useState("");
+
+    // -----------------------------
+    // ✅ FILTER LOGIC
+    // -----------------------------
+    const filteredInterviews = reversedInterviews.filter((item) => {
+        const matchRole =
+            selectedRole === "" ||
+            item.role?.toLowerCase().includes(selectedRole.toLowerCase());
+
+        const matchType =
+            selectedType === "" ||
+            item.type.toLowerCase() === selectedType.toLowerCase();
+
+        const matchTech =
+            selectedTech === "" ||
+            item.techstack.some((t) =>
+                t.toLowerCase().includes(selectedTech.toLowerCase())
+            );
+
+        return matchRole && matchType && matchTech;
+    });
+
+    // -----------------------------
+    // ✅ PAGINATION (AFTER FILTERING)
+    // -----------------------------
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
+
+    const totalPages = Math.ceil(filteredInterviews.length / itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    const paginatedInterviews = filteredInterviews.slice(start, start + itemsPerPage);
+
     if (user === undefined) return null;
 
     const loading = loadingUserInterviews || loadingAllInterviews;
@@ -75,37 +111,109 @@ export default function HomePage() {
                     <section className="mt-10">
                         <h2 className="text-2xl font-semibold mb-6">Your Interviews</h2>
 
+                        {/* ----------------------
+                            FILTER UI
+                        ----------------------- */}
+                        <div className="flex flex-col md:flex-row gap-4 mb-8">
+
+                            {/* Role Search */}
+                            <input
+                                type="text"
+                                placeholder="Search by role..."
+                                className="border p-2 rounded-md w-full md:w-1/3"
+                                value={selectedRole}
+                                onChange={(e) => {
+                                    setSelectedRole(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                            />
+
+                            {/* Type Dropdown */}
+                            <select
+                                className="border p-2 rounded-md w-full md:w-1/3"
+                                value={selectedType}
+                                onChange={(e) => {
+                                    setSelectedType(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <option value="">All Types</option>
+                                <option value="technical">Technical</option>
+                                <option value="behavioral">Behavioral</option>
+                                <option value="system">System Design</option>
+                            </select>
+
+                            {/* Tech Stack Search */}
+                            <input
+                                type="text"
+                                placeholder="Filter by tech stack..."
+                                className="border p-2 rounded-md w-full md:w-1/3"
+                                value={selectedTech}
+                                onChange={(e) => {
+                                    setSelectedTech(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        </div>
+
                         {loading ? (
                             <div className="flex justify-center py-10">
                                 <LoadingCard message="Loading available interviews..." />
                             </div>
-                        ) : reversedInterviews.length > 0 ? (
-                            <div
-                                className="
-                grid 
-                grid-cols-1 
-                sm:grid-cols-2 
-                lg:grid-cols-3 
-                gap-8
-              "
-                            >
-                                {reversedInterviews.map((interview) => (
-                                    <InterviewCard
-                                        key={interview.id}
-                                        interviewId={interview.id}
-                                        role={interview.role}
-                                        type={interview.type}
-                                        techstack={interview.techstack}
-                                        createdAt={interview.createdAt}
-                                    />
-                                ))}
-                            </div>
+                        ) : filteredInterviews.length > 0 ? (
+                            <>
+                                {/* INTERVIEW CARDS */}
+                                <div
+                                    className="
+                                        grid 
+                                        grid-cols-1 
+                                        sm:grid-cols-2 
+                                        lg:grid-cols-3 
+                                        gap-8
+                                    "
+                                >
+                                    {paginatedInterviews.map((interview) => (
+                                        <InterviewCard
+                                            key={interview.id}
+                                            interviewId={interview.id}
+                                            role={interview.role}
+                                            type={interview.type}
+                                            techstack={interview.techstack}
+                                            createdAt={interview.createdAt}
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* PAGINATION */}
+                                <div className="flex justify-center mt-10 gap-4 items-center">
+                                    <Button
+                                        variant="outline"
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(currentPage - 1)}
+                                    >
+                                        Previous
+                                    </Button>
+
+                                    <span className="px-4 py-2">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+
+                                    <Button
+                                        variant="outline"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(currentPage + 1)}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            </>
                         ) : (
                             <p className="text-muted-foreground">
-                                No interviews available at the moment.
+                                No interviews match your filters.
                             </p>
                         )}
                     </section>
+
                 </div>
             </div>
         </div>

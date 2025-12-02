@@ -1,7 +1,7 @@
 "use client";
 
 import { UserContext } from "@/context/UserContext";
-import { CalendarIcon, CrownIcon, HomeIcon, MicIcon } from "lucide-react";
+import { CalendarIcon, CrownIcon, HomeIcon, MicIcon, ShieldIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,11 +24,10 @@ function Navbar() {
           <div className="flex items-center gap-6">
             <Link
               href="/dashboard"
-              className={`flex items-center gap-2 transition-colors ${
-                pathname === "/dashboard"
-                  ? "text-primary hover:font-medium"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex items-center gap-2 transition-colors ${pathname === "/dashboard"
+                ? "text-primary hover:font-medium"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               <HomeIcon className="w-4 h-4" />
               <span className="hidden md:inline">Dashboard</span>
@@ -36,9 +35,8 @@ function Navbar() {
 
             <Link
               href="/appointments"
-              className={`flex items-center gap-2 transition-colors hover:text-foreground ${
-                pathname === "/appointments" ? "text-primary" : "text-muted-foreground"
-              }`}
+              className={`flex items-center gap-2 transition-colors hover:text-foreground ${pathname === "/appointments" ? "text-primary" : "text-muted-foreground"
+                }`}
             >
               <CalendarIcon className="w-4 h-4" />
               <span className="hidden md:inline">Appointments</span>
@@ -46,22 +44,31 @@ function Navbar() {
 
             <Link
               href="/ai-interview"
-              className={`flex items-center gap-2 transition-colors hover:text-foreground ${
-                pathname === "/voice" ? "text-primary" : "text-muted-foreground"
-              }`}
+              className={`flex items-center gap-2 transition-colors hover:text-foreground ${pathname === "/voice" ? "text-primary" : "text-muted-foreground"
+                }`}
             >
               <MicIcon className="w-4 h-4" />
               <span className="hidden md:inline">Interview</span>
             </Link>
             <Link
               href="/pro"
-              className={`flex items-center gap-2 transition-colors hover:text-foreground ${
-                pathname === "/pro" ? "text-primary" : "text-muted-foreground"
-              }`}
+              className={`flex items-center gap-2 transition-colors hover:text-foreground ${pathname === "/pro" ? "text-primary" : "text-muted-foreground"
+                }`}
             >
               <CrownIcon className="w-4 h-4" />
               <span className="hidden md:inline">Pro</span>
             </Link>
+
+            {user?.role === "ADMIN" && (
+              <Link
+                href="/admin"
+                className={`flex items-center gap-2 transition-colors hover:text-foreground ${pathname === "/admin" ? "text-primary" : "text-muted-foreground"
+                  }`}
+              >
+                <ShieldIcon className="w-4 h-4" />
+                <span className="hidden md:inline">Admin</span>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -73,7 +80,7 @@ function Navbar() {
                 {user?.username ?? "Guest"}
               </span>
               <span className="text-xs text-muted-foreground">
-                 {user?.email ?? "Not signed in"}
+                {user?.email ?? "Not signed in"}
               </span>
             </div>
 

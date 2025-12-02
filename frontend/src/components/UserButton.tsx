@@ -18,6 +18,10 @@ function UserButton() {
   const { user, logout } = useContext(UserContext);
   const router = useRouter();
 
+  const handleProfile = () =>{
+    router.push("/profile")
+  }
+
   const handleLogout = () => {
     logout(); // clears user and accessToken
     router.push("/login"); // redirect to login page
@@ -45,7 +49,7 @@ function UserButton() {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleProfile}>
           <UserIcon className="w-4 h-4 mr-2" /> Profile
         </DropdownMenuItem>
 
@@ -59,7 +63,7 @@ function UserButton() {
           className="text-red-600 focus:text-red-600"
           onClick={handleLogout} // hook up logout here
         >
-          <LogOut  onClick= { handleLogout } className="w-4 h-4 mr-2" /> Logout
+          <LogOut className="w-4 h-4 mr-2" /> Logout
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

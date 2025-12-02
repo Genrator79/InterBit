@@ -10,6 +10,7 @@ import { useGetMentors } from "@/hooks/use-mentors";
 import { useGetAllInterviews } from "@/hooks/use-interviews"
 import { RecentInterviews } from "@/components/admin/RecentInterviews"
 import MentorsManagement from '@/components/admin/MentorManagement';
+import UserManagement from '@/components/admin/UserManagement';
 
 const AdminDashboardClient = () => {
   const { user } = useContext(UserContext);
@@ -60,6 +61,7 @@ const AdminDashboardClient = () => {
         />
 
         <MentorsManagement />
+        <UserManagement />
 
         <RecentInterviews />
       </div>

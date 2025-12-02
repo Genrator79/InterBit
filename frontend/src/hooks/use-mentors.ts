@@ -6,6 +6,7 @@ interface UseGetMentorsResult {
   data: Mentor[];
   isLoading: boolean;
   error: Error | null;
+  refetch: () => Promise<void>;
 }
 
 export interface CreateMentorInput {
@@ -23,22 +24,23 @@ export function useGetMentors(): UseGetMentorsResult {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const mentors = await getMentors();
-        setData(mentors);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setIsLoading(false);
-      }
+  async function fetchData() {
+    setIsLoading(true);
+    try {
+      const mentors = await getMentors();
+      setData(mentors);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setIsLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchData();
   }, []);
 
-  return { data, isLoading, error };
+  return { data, isLoading, error, refetch: fetchData };
 }
 
 

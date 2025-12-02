@@ -1,6 +1,7 @@
+
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const {getAllUsers, registerUser, loginUser, changePassword} =require('../controllers/auth-controller');
+const { getAllUsers, registerUser, loginUser, changePassword, updateUser, deleteUser } = require('../controllers/auth-controller');
 const authMiddleware = require('../middleware/auth-middleware');
 const isAdminUser = require("../middleware/admin-middleware")
 
@@ -16,6 +17,8 @@ router.post('/auth/register', registerUser);
 //login user
 router.post("/auth/login", loginUser);
 router.post("/changepassword", authMiddleware, changePassword);
+router.put("/update", authMiddleware, updateUser);
+router.delete("/:id", authMiddleware, isAdminUser, deleteUser);
 
 
 module.exports = router;
