@@ -114,7 +114,7 @@ router.get("/:id", async (req, res) => {
         message: "AI Interview not found"
       });
     }
-
+    // console.log(interview);
     return res.status(200).json({
       success: true,
       interview

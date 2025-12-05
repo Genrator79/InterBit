@@ -6,6 +6,7 @@ const userRoute = require("./routes/userRoutes");
 const mentorRoute = require('./routes/mentorRoutes')
 const interviewRoute = require('./routes/interviewRoutes')
 const aiInterviewRoute = require('./routes/ai-interviewRoute')
+const feedbackRoutes = require('./routes/feedback_routes')
 
 const app = express();
 
@@ -29,6 +30,9 @@ app.use("/api/interviews", interviewRoute);
 
 //aiInterviewRoute
 app.use("/api/ai-interviews", aiInterviewRoute);
+
+//feedback
+app.use("/api/feedback", feedbackRoutes);
 
 // Start server
 app.listen(process.env.PORT, () => {

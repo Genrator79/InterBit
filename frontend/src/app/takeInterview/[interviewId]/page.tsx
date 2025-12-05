@@ -8,7 +8,7 @@ interface RouteParams {
   };
 }
 
-export default async function InterviewPage({ params }: { params: { interviewId: string } }) {
+export default async function InterviewPage({ params }: RouteParams) {
   const { interviewId } = await params;
 
   const interview = await fetchInterviewByIdServer(interviewId);

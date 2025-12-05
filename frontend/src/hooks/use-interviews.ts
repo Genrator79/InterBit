@@ -5,6 +5,19 @@ import axios from "@/utils/axios";
 import { UserContext, User } from "@/context/UserContext";
 import { getBookedTimeSlots } from "@/lib/actions/interviews"
 
+
+export interface Feedback {
+  totalScore: number;
+  categoryScores: Array<{
+    name: string;
+    score: number;
+    comment: string;
+  }>;
+  strengths: string[];
+  areasForImprovement: string[];
+  finalAssessment: string;
+}
+
 export interface Interview {
   id: string;
   userName: string;
@@ -14,7 +27,7 @@ export interface Interview {
   date: string;
   time: string;
   questions: String[];
-  feedback?: string;
+  feedback?: Feedback | null; // Changed from string to Feedback object
   score?: number;
   // interview info
   role: string;
@@ -169,7 +182,7 @@ export function useUpdateInterviewStatus() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.patch(`/interviews/${id}/status`, { status }); 
+        const response = await axios.patch(`/interviews/${id}/status`, { status });
         return response.data;
       } catch (err: any) {
         console.error(err);
