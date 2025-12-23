@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import { UserContext } from "@/context/UserContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { vapi } from "@/lib/vapi.sdk";
-import { interviewer } from "@/constants";
+import { interviewer, interviewPreparer } from "@/constants";
 import { cn } from "@/lib/utils";
-import { createFeedback } from "@/lib/actions/general.action";
+import { createFeedback, createQuestions } from "@/lib/actions/general.action";
 import FeedbackLoading from "./FeedbackLoading";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Phone, PhoneOff, Radio } from "lucide-react";
@@ -35,12 +35,23 @@ interface SavedMessage {
 const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) => {
   const { user } = useContext(UserContext);
   const router = useRouter();
+  const hasHandledFinish = useRef(false);
 
   // State
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
+  const [interviewSetup, setInterviewSetup] = useState<{
+    role?: string;
+    type?: string;
+    level?: string;
+    techstack?: string;
+    amount?: string;
+  }>({});
+  const [prepStep, setPrepStep] = useState(0);
+
+
 
   // Redirect if no user
   useEffect(() => {
@@ -56,10 +67,24 @@ const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) =
 
     const onMessage = (message: any) => {
       if (message.type === "transcript" && message.transcriptType === "final") {
-        const newMessage = { role: message.role, content: message.transcript };
-        setMessages((prev) => [...prev, newMessage]);
+        const content = message.transcript;
+
+        setMessages((prev) => [...prev, { role: message.role, content }]);
+
+        // ONLY during interview preparation
+        if (type === "generate" && message.role === "user") { 
+          setInterviewSetup((prev) => {
+            if (!prev.role) return { ...prev, role: content }; 
+            if (!prev.type) return { ...prev, type: content }; 
+            if (!prev.level) return { ...prev, level: content }; 
+            if (!prev.techstack) return { ...prev, techstack: content }; 
+            if (!prev.amount) return { ...prev, amount: content }; 
+            return prev; 
+          });
+        }
       }
     };
+
 
     const onSpeechStart = () => setIsSpeaking(true);
     const onSpeechEnd = () => setIsSpeaking(false);
@@ -99,7 +124,7 @@ const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) =
       } else {
         console.error("Failed to create feedback");
         setIsGeneratingFeedback(false);
-        router.push("/ai-interview");
+        router.push("/interview");
       }
     } catch (error) {
       console.error("Error in handleGenerateFeedback:", error);
@@ -107,17 +132,45 @@ const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) =
       router.push("/ai-interview");
     }
   };
+  const handleGenerateQuestions = async () => {
+    const { role, type: interviewType, level, techstack, amount } = interviewSetup;
+
+    if (!role || !interviewType || !level || !techstack || !amount) {
+      console.error("Incomplete interview setup");
+      router.push("/interveiw");
+      return;
+    }
+
+    const res = await createQuestions({
+      role,
+      type: interviewType,
+      level,
+      techstack,
+      amount,
+      userid: userId
+    });
+
+    if (res.success && res.interviewId) {
+      router.push(`/takeInterview/${res.interviewId}`);
+    } else {
+      router.push("/");
+    }
+  };
+
 
   // Auto-trigger feedback on call finish
   useEffect(() => {
-    if (callStatus === CallStatus.FINISHED) {
-      if (type === "generate") {
-        router.push("/");
-      } else {
-        handleGenerateFeedback(messages);
-      }
+    if (callStatus !== CallStatus.FINISHED) return;
+
+    if (type === "generate") {
+      if (hasHandledFinish.current) return;
+      hasHandledFinish.current = true;
+      handleGenerateQuestions();
+    } else {
+      handleGenerateFeedback(messages);
     }
-  }, [callStatus, messages, router, type, userId, interviewId]); // Dependencies updated
+  }, [callStatus, type, messages]);
+
 
   // Handlers
   const handleCall = async () => {
@@ -125,7 +178,7 @@ const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) =
     try {
       if (type === "generate") {
         await vapi.start(
-          process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
+          interviewPreparer,
           {
             variableValues: {
               username: username,
@@ -152,7 +205,6 @@ const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) =
   };
 
   const handleDisconnect = () => {
-    setCallStatus(CallStatus.FINISHED);
     vapi.stop();
   };
 
