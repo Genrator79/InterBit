@@ -94,7 +94,7 @@ export default function HomePage() {
                             </p>
 
                             <Button asChild className="btn-primary w-full md:w-fit mt-2">
-                                <Link href="/interview">Start an Interview</Link>
+                                <Link href="/interview">Create an Interview</Link>
                             </Button>
                         </div>
 

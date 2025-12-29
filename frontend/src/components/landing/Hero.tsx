@@ -1,6 +1,7 @@
 import { Button } from "../ui/button";
 import { CalendarIcon, MicIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 function Hero() {
   return (
@@ -51,15 +52,19 @@ function Hero() {
               </div>
 
               {/* CTA BUTTONS */}
-              <div className="flex flex-col sm:flex-row gap-4">             
-                <Button size={"lg"}>
-                  <MicIcon className="mr-2 size-5" />
-                  Try a Mock Interview
-                </Button>
-                <Button size={"lg"} variant={"outline"}>
-                  <CalendarIcon className="mr-2 size-5" />
-                  Book appointment
-                </Button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href={"/interview"}>
+                  <Button size={"lg"} >
+                    <MicIcon className="mr-2 size-5" />
+                    Try a Mock Interview
+                  </Button>
+                </Link>  
+                <Link href={"/appointments"}>     
+                  <Button size={"lg"} variant={"outline"}>
+                    <CalendarIcon className="mr-2 size-5" />
+                    Book appointment
+                  </Button>
+                </Link>
                 
               </div>
 

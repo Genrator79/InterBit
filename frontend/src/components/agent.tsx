@@ -137,7 +137,7 @@ const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) =
 
     if (!role || !interviewType || !level || !techstack || !amount) {
       console.error("Incomplete interview setup");
-      router.push("/interveiw");
+      router.push("/interview");
       return;
     }
 
