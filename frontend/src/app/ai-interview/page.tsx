@@ -58,7 +58,9 @@ export default function HomePage() {
                 t.toLowerCase().includes(selectedTech.toLowerCase())
             );
 
-        return matchRole && matchType && matchTech;
+        const matchAI = item.mentorId === null;
+
+        return matchRole && matchType && matchTech && matchAI;
     });
 
     // -----------------------------

@@ -23,7 +23,7 @@ export default function UpcomingInterviewsPage() {
       }
       const now = new Date();
       return (
-        interview.status === "SCHEDULED" &&
+        (interview.status === "ACCEPTED" || interview.status === "PENDING") &&
         (isSameDay(interviewDateTime, now) || isAfter(interviewDateTime, now))
       );
     })

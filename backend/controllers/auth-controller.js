@@ -32,14 +32,28 @@ const registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        //now create a new user and save it in your database
+        // Check if this email belongs to a pre-created Mentor (added by Admin)
+        let finalRole = role?.toUpperCase() || "USER";
 
+        // If the requested role is NOT already MENTOR, check if they should be one
+        if (finalRole !== "MENTOR") {
+            const existingMentor = await prisma.mentor.findUnique({
+                where: { email: email }
+            });
+
+            if (existingMentor) {
+                console.log(`Auto-assigning MENTOR role to ${email}`);
+                finalRole = "MENTOR";
+            }
+        }
+
+        //now create a new user and save it in your database
         const newlyCreatedUser = await prisma.user.create({
             data: {
                 username,
                 email,
                 password: hashedPassword,
-                role: role?.toUpperCase() || "USER"
+                role: finalRole
             }
         })
 

@@ -12,6 +12,13 @@ This is a comprehensive **AI Interview Platform** designed to help users prepare
 -   **Performance Metrics**: Store and view interview scores and detailed feedback.
 -   **AI Integration**: AI-powered interview sessions and feedback generation.
 
+## 📚 Detailed Documentation
+
+*   [**Backend Overview**](./BACKEND_OVERVIEW.md): Detailed API and Database schema analysis.
+*   [**Frontend Overview**](./FRONTEND_OVERVIEW.md): Page structure, component analysis, and filtering logic.
+*   [**User-Mentor Flow**](./USER_MENTOR_FLOW.md): Step-by-step guide to the booking and mentor lifecycle.
+*   [**App Flow & API Mapping**](./APP_FLOW_AND_API_MAPPING.md): Comprehensive table mapping user actions to API calls.
+
 ## Data Model
 
 The application uses a relational database managed by Prisma with the following core entities:
@@ -39,16 +46,20 @@ The project is divided into two main parts:
 -   **Styling**: Tailwind CSS v4, Tailwind Merge, CLSX
 -   **UI Components**: Radix UI, Lucide React, Sonner (Toast), Recharts
 -   **Forms & Validation**: React Hook Form, Zod
--   **AI Integration**: Vapi AI Web, Vercel AI SDK
+-   **AI Integration**: Vapi AI Web
 -   **Utilities**: Date-fns, Dayjs, Axios
 
 ## Features
 
 -   **User Authentication & Profile**: Secure login, registration, and profile management (update username, email, password).
--   **Admin Controls**: Dedicated admin dashboard for managing platform users and mentors.
+-   **Role-Based Access**:
+    -   **User**: Book interviews, take AI interviews, view history.
+    -   **Mentor**: specialized dashboard to manage requests, accept/reject bookings, mark completion.
+    -   **Admin**: Dedicated admin dashboard for managing platform users and mentors.
+-   **Interview Booking System**: complete flow (Mentor -> Time -> Confirm) with email notifications (stubbed).
 -   **AI-Powered Interactions**: Integration with Vapi AI and Google AI for intelligent features.
 -   **Responsive Design**: Modern UI built with Radix UI and Tailwind CSS.
--   **Data Management**: Efficient data handling with Prisma and React Query (implied by modern stack, though not explicitly listed in top dependencies, likely using server actions or useEffect).
+-   **Data Management**: Efficient data handling with Prisma and React Query concepts.
 -   **Dashboard/Charts**: Visual data representation using Recharts.
 
 ## Getting Started

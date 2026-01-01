@@ -55,7 +55,7 @@ model Interview {
   date         DateTime?
   time         String?
   duration     Int              @default(60)
-  status       InterviewStatus  @default(SCHEDULED)
+  status       InterviewStatus  @default(PENDING)
   feedback     Json?
   score        Int?
   createdAt    DateTime         @default(now())
@@ -78,7 +78,9 @@ enum UserRole {
 }
 
 enum InterviewStatus {
-  SCHEDULED
+  PENDING
+  ACCEPTED
+  REJECTED
   COMPLETED
   CANCELLED
 }

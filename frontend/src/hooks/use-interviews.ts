@@ -23,6 +23,8 @@ export interface Interview {
   userName: string;
   userEmail: string;
   mentorName: string;
+  mentorEmail: string;
+  mentorId: string | null;
   mentorImageUrl?: string;
   date: string;
   time: string;
@@ -34,7 +36,7 @@ export interface Interview {
   techstack: string[];
   createdAt: string; // or Date
   type: string;
-  status: "SCHEDULED" | "COMPLETED" | "CANCELLED";
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" | "CANCELLED";
   duration: number;
 }
 
@@ -66,6 +68,8 @@ export function transformInterview(data: any): Interview {
 
     // Mentor info
     mentorName: data.mentor?.name || (data.type === "AI" ? "AI Mentor" : "Unknown"),
+    mentorEmail: data.mentor?.email || "",
+    mentorId: data.mentorId || data.mentor?.id || null,
     mentorImageUrl: data.mentor?.imageUrl || null,
 
     // Interview schedule
@@ -178,7 +182,7 @@ export function useUpdateInterviewStatus() {
   const [error, setError] = useState<string | null>(null);
 
   const updateStatus = useCallback(
-    async (id: string, status: "SCHEDULED" | "COMPLETED" | "CANCELLED") => {
+    async (id: string, status: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" | "CANCELLED") => {
       setIsLoading(true);
       setError(null);
       try {

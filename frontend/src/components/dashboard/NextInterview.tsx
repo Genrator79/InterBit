@@ -31,7 +31,7 @@ export default function NextInterview() {
         }
 
         return (
-            interview.status === "SCHEDULED" &&
+            interview.status === "ACCEPTED" &&
             (isSameDay(interviewDateTime, today) || isAfter(interviewDateTime, today))
         );
     });
@@ -119,15 +119,15 @@ export default function NextInterview() {
                 )}
             </CardContent>
 
-                {upcomingInterviews.length > 1 && (
-                    <div className="text-center mt-3">
-                        <Link href="/upcomingAppoint">
-                            <Button className="bg-primary text-white hover:bg-primary/80">
-                                View All Upcoming Interviews
-                            </Button>
-                        </Link>
-                    </div>
-                )}
+            {upcomingInterviews.length > 1 && (
+                <div className="text-center mt-3">
+                    <Link href="/upcomingAppoint">
+                        <Button className="bg-primary text-white hover:bg-primary/80">
+                            View All Upcoming Interviews
+                        </Button>
+                    </Link>
+                </div>
+            )}
 
         </Card>
     );

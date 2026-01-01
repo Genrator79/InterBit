@@ -11,19 +11,19 @@ const prisma = new PrismaClient();
 //  CREATE INTERVIEW
 // ===========================
 router.post("/", async (req, res) => {
-    try {
-        const { type, role, level, techstack, amount, userid } = req.body;
+  try {
+    const { type, role, level, techstack, amount, userid } = req.body;
 
-        if (!role || !userid) {
-            return res
-                .status(400)
-                .json({ success: false, message: "Missing role or userid" });
-        }
+    if (!role || !userid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing role or userid" });
+    }
 
-        // 1️⃣ Generate interview questions
-        const { text: questionsText } = await generateText({
-            model: google("gemini-2.5-flash"),
-            prompt: `Prepare questions for a job interview.
+    // 1️⃣ Generate interview questions
+    const { text: questionsText } = await generateText({
+      model: google("gemini-2.5-flash"),
+      prompt: `Prepare questions for a job interview.
         The job role is ${role}.
         The job experience level is ${level}.
         The tech stack used in the job is: ${techstack}.
@@ -31,43 +31,44 @@ router.post("/", async (req, res) => {
         The amount of questions required is: ${amount}.
         Please return only the questions, without any additional text.
         The questions should be returned in JSON array format like ["Q1", "Q2"].`,
-        });
+    });
 
-        // 2️⃣ Parse model response safely
-        let parsedQuestions;
-        try {
-            parsedQuestions = JSON.parse(questionsText);
-            if (!Array.isArray(parsedQuestions)) throw new Error("Invalid format");
-        } catch (err) {
-            console.error("Invalid model response:", questionsText);
-            throw new Error("AI response parsing failed");
-        }
-
-        // 3️⃣ Save to DB using Prisma
-        const interview = await prisma.interview.create({
-            data: {
-                role,
-                type,
-                level,
-                techstack: techstack.split(",").map((s) => s.trim()),
-                questions: parsedQuestions,
-                userId: parseInt(userid),
-                finalized: true,
-                // coverImage: getRandomInterviewCover(),
-            },
-        });
-
-        return res.status(201).json({
-            success: true,
-            message: "Interview created successfully!",
-            interview,
-        });
-    } catch (error) {
-        console.error("Error creating interview:", error);
-        return res
-            .status(500)
-            .json({ success: false, message: error.message || "Server error" });
+    // 2️⃣ Parse model response safely
+    let parsedQuestions;
+    try {
+      const cleanedText = questionsText.replace(/```json/g, "").replace(/```/g, "").trim();
+      parsedQuestions = JSON.parse(cleanedText);
+      if (!Array.isArray(parsedQuestions)) throw new Error("Invalid format");
+    } catch (err) {
+      console.error("Invalid model response:", questionsText);
+      throw new Error("AI response parsing failed");
     }
+
+    // 3️⃣ Save to DB using Prisma
+    const interview = await prisma.interview.create({
+      data: {
+        role,
+        type,
+        level,
+        techstack: techstack.split(",").map((s) => s.trim()),
+        questions: parsedQuestions,
+        userId: parseInt(userid),
+        finalized: true,
+        // coverImage: getRandomInterviewCover(),
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Interview created successfully!",
+      interview,
+    });
+  } catch (error) {
+    console.error("Error creating interview:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: error.message || "Server error" });
+  }
 });
 
 // ===========================
@@ -76,23 +77,23 @@ router.post("/", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-    try {
-        const interviews = await prisma.interview.findMany({
-            include: { user: true, mentor: true },
-            orderBy: { date: "asc" },
-        });
+  try {
+    const interviews = await prisma.interview.findMany({
+      include: { user: true, mentor: true },
+      orderBy: { date: "asc" },
+    });
 
-        res.status(200).json({
-            success: true,
-            message: "Interviews fetched successfully!",
-            interviews,
-        });
-    } catch (err) {
-        console.error("Error fetching interviews:", err);
-        res
-            .status(500)
-            .json({ success: false, message: "Failed to fetch interviews" });
-    }
+    res.status(200).json({
+      success: true,
+      message: "Interviews fetched successfully!",
+      interviews,
+    });
+  } catch (err) {
+    console.error("Error fetching interviews:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch interviews" });
+  }
 });
 
 

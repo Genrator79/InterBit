@@ -15,12 +15,12 @@ export function RecentInterviews() {
     const interview = interviews.find((i) => i.id === id);
     if (!interview) return;
 
-    const newStatus =
-      interview.status === "SCHEDULED" ? "COMPLETED" : "SCHEDULED";
+    // Toggle logic: If not COMPLETED, make COMPLETED. If COMPLETED, make ACCEPTED.
+    const newStatus = interview.status === "COMPLETED" ? "ACCEPTED" : "COMPLETED";
 
     try {
       await updateStatus(id, newStatus);
-      await refetch(); // 👈 Refresh interviews after backend update
+      await refetch();
     } catch (err) {
       console.error("Failed to update interview:", err);
     }
@@ -28,12 +28,15 @@ export function RecentInterviews() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "SCHEDULED":
-        return <Badge className="bg-blue-100 text-blue-800">Scheduled</Badge>;
+      case "ACCEPTED":
+        return <Badge className="bg-blue-100 text-blue-800">Accepted</Badge>;
+      case "PENDING":
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
       case "COMPLETED":
         return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
       case "CANCELLED":
-        return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>;
+      case "REJECTED":
+        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }

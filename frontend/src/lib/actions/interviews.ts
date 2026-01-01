@@ -11,7 +11,7 @@ export interface Interview {
   date?: string;  // Prisma date can be null
   time?: string;  // Prisma time can be null
   type: "AI" | "HUMAN";
-  status: "SCHEDULED" | "COMPLETED" | "CANCELLED";
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" | "CANCELLED";
   duration: number;
   feedback?: string;
   score?: number;
@@ -41,7 +41,7 @@ export interface BookInterviewInput {
 
 // Transform backend response to frontend-friendly structure
 export function transformInterview(interview: any): Interview {
-  return {
+  const mapped: Interview = {
     id: interview.id,
     userName: interview.user?.username || "Unknown User",
     userEmail: interview.user?.email || "",
@@ -50,7 +50,7 @@ export function transformInterview(interview: any): Interview {
     date: interview.date ? new Date(interview.date).toISOString() : undefined,
     time: interview.time || "",
     type: (interview.type === "HUMAN" ? "HUMAN" : "AI") as "AI" | "HUMAN",
-    status: interview.status as "SCHEDULED" | "COMPLETED" | "CANCELLED",
+    status: interview.status as any as "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" | "CANCELLED",
     duration: interview.duration,
     feedback: interview.feedback || "",
     score: interview.score ?? undefined,
@@ -65,6 +65,8 @@ export function transformInterview(interview: any): Interview {
     createdAt: interview.createdAt ? new Date(interview.createdAt).toISOString() : undefined,
     updatedAt: interview.updatedAt ? new Date(interview.updatedAt).toISOString() : undefined,
   };
+
+  return mapped;
 }
 
 
@@ -141,7 +143,7 @@ export async function bookInterview(input: BookInterviewInput): Promise<Intervie
 // Update interview status (admin or mentor)
 export async function updateInterviewStatus(
   id: string,
-  status: "SCHEDULED" | "COMPLETED" | "CANCELLED"
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED" | "CANCELLED"
 ) {
   try {
     const response = await axios.patch(`/interviews/${id}/status`, { status });

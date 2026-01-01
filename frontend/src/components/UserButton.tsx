@@ -52,11 +52,7 @@ function UserButton() {
         <DropdownMenuItem onClick={handleProfile}>
           <UserIcon className="w-4 h-4 mr-2" /> Profile
         </DropdownMenuItem>
-
-        <DropdownMenuItem>
-          <Settings className="w-4 h-4 mr-2" /> Settings
-        </DropdownMenuItem>
-
+        
         <DropdownMenuSeparator />
 
         <DropdownMenuItem

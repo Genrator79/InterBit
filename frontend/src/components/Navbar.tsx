@@ -69,6 +69,17 @@ function Navbar() {
                 <span className="hidden md:inline">Admin</span>
               </Link>
             )}
+
+            {user?.role === "MENTOR" && (
+              <Link
+                href="/mentor/interviews"
+                className={`flex items-center gap-2 transition-colors hover:text-foreground ${pathname === "/mentor/interviews" ? "text-primary" : "text-muted-foreground"
+                  }`}
+              >
+                <ShieldIcon className="w-4 h-4" />
+                <span className="hidden md:inline">Mentor Dashboard</span>
+              </Link>
+            )}
           </div>
         </div>
 

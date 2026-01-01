@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcrypt");
 const prisma = new PrismaClient();
 
 async function main() {
@@ -16,7 +17,7 @@ async function main() {
     data: {
       username: "Demo User",
       email: "demo.user@example.com",
-      password: "demo123",
+      password: await bcrypt.hash("demo123", 10),
       role: "USER",
     },
   });
@@ -37,7 +38,31 @@ async function main() {
     },
   });
 
+  // 2.1 Create User account for this Mentor (so they can log in)
+  await prisma.user.create({
+    data: {
+      username: "Demo Mentor",
+      email: "demo.mentor@example.com",
+      password: await bcrypt.hash("demo123", 10),
+      role: "MENTOR",
+    },
+  });
+
   console.log("✅ Mentor created:", mentor.email);
+
+  // -------------------------
+  // 3️⃣ Create Admin User
+  // -------------------------
+  const admin = await prisma.user.create({
+    data: {
+      username: "Abhijeet",
+      email: "abhijeet@gmail.com",
+      password: await bcrypt.hash("12345678", 10),
+      role: "ADMIN",
+    },
+  });
+
+  console.log("✅ Admin created:", admin.email);
 
   // -------------------------
   // 3️⃣ Create Demo Interviews
@@ -55,7 +80,7 @@ async function main() {
       date: new Date(),
       time: "10:00 AM",
       duration: 60,
-      status: "SCHEDULED",
+      status: "ACCEPTED",
       userId: user.id,
       mentorId: mentor.id,
     },
@@ -75,7 +100,7 @@ async function main() {
       date: new Date(),
       time: "2:00 PM",
       duration: 45,
-      status: "SCHEDULED",
+      status: "ACCEPTED",
       userId: user.id,
       mentorId: null,
     },

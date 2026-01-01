@@ -53,7 +53,31 @@ router.get("/me/stats", authMiddleware, async (req, res) => {
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.query;
-    const whereClause = userId ? { userId: Number(userId) } : {};
+
+    // Check if the user is a mentor and wants their mentor interviews
+    // We can interpret this from the user role in the token (avail via authMiddleware usually, but here we query user)
+    const user = await prisma.user.findUnique({ where: { id: Number(userId) } });
+
+    let whereClause = {};
+
+    if (user && user.role === "MENTOR") {
+      // Find the mentor record associated with this user's email
+      const mentor = await prisma.mentor.findUnique({ where: { email: user.email } });
+      if (mentor) {
+        // If user is mentor, get interviews where they are the mentor OR the user (if they book for themselves)
+        whereClause = {
+          OR: [
+            { mentorId: mentor.id },
+            { userId: Number(userId) }
+          ]
+        };
+      } else {
+        // Fallback: if role is MENTOR but no Mentor profile found (shouldn't happen with our fix), treat as User
+        whereClause = { userId: Number(userId) };
+      }
+    } else {
+      whereClause = userId ? { userId: Number(userId) } : {};
+    }
 
     const interviews = await prisma.interview.findMany({
       where: whereClause,
@@ -141,10 +165,53 @@ router.post("/book", authMiddleware, async (req, res) => {
 // PATCH /interviews/:id/status
 // Update interview status
 // -------------------------
-router.patch("/:id/status", authMiddleware,  async (req, res) => {
+router.patch("/:id/status", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+
+    // 1. Fetch current interview details
+    const existingInterview = await prisma.interview.findUnique({
+      where: { id },
+    });
+
+    if (!existingInterview) {
+      return res.status(404).json({ success: false, message: "Interview not found" });
+    }
+
+    // 2. If trying to mark as COMPLETED, validate date/time
+    if (status === "COMPLETED") {
+      const interviewDate = new Date(existingInterview.date);
+      const timeString = existingInterview.time; // e.g., "10:00 AM" or "14:00"
+
+      // Parse time string to adjust interviewDate
+      // Assuming format "HH:mm" or "h:mm A"
+      let hours = 0;
+      let minutes = 0;
+
+      if (timeString) {
+        const [timePart, modifier] = timeString.split(" ");
+        let [h, m] = timePart.split(":").map(Number);
+
+        if (modifier) {
+          if (modifier === "PM" && h < 12) h += 12;
+          if (modifier === "AM" && h === 12) h = 0;
+        }
+        hours = h;
+        minutes = m;
+      }
+
+      interviewDate.setHours(hours, minutes, 0, 0);
+
+      const now = new Date();
+
+      if (now < interviewDate) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot mark interview as completed before its scheduled time."
+        });
+      }
+    }
 
     const interview = await prisma.interview.update({
       where: { id },
