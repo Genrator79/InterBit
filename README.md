@@ -1,4 +1,4 @@
-# Interbit
+# InterBit
 
 This is a comprehensive **AI Interview Platform** designed to help users prepare for technical interviews. It connects users with expert mentors and provides AI-driven interview experiences.
 
