@@ -85,10 +85,10 @@ export function useUserInterviews() {
       const response = await axios.get(`/interviews/me`, {
         params: { userId: user.id }, // pass user id to backend
       });
-      return response.data.map(transformInterview);
+      return (response.data.interviews || []).map(transformInterview);
     } catch (error: any) {
       console.error("Error fetching user interviews:", error.response?.data || error.message);
-      throw new Error(error.response?.data?.error || "Failed to fetch your interviews");
+      throw new Error(error.response?.data?.message || error.response?.data?.error || "Failed to fetch your interviews");
     }
   }
   return { user, fetchUserInterviews };
@@ -98,10 +98,10 @@ export function useUserInterviews() {
 export async function getAllInterviews(): Promise<Interview[]> {
   try {
     const response = await axios.get("/interviews");
-    return response.data.map(transformInterview);
+    return (response.data.interviews || []).map(transformInterview);
   } catch (error: any) {
     console.error("Error fetching interviews:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || "Failed to fetch interviews");
+    throw new Error(error.response?.data?.message || error.response?.data?.error || "Failed to fetch interviews");
   }
 }
 
@@ -109,7 +109,7 @@ export async function getAllInterviews(): Promise<Interview[]> {
 export async function getUserInterviewStats(): Promise<{ total: number; completed: number }> {
   try {
     const response = await axios.get("/interviews/me/stats");
-    return response.data;
+    return response.data.stats || { total: 0, completed: 0 };
   } catch (error: any) {
     console.error("Error fetching interview stats:", error.response?.data || error.message);
     return { total: 0, completed: 0 };
@@ -122,7 +122,7 @@ export async function getBookedTimeSlots(mentorId: string, date: string): Promis
     const response = await axios.get(`/interviews/booked-slots`, {
       params: { mentorId, date },
     });
-    return response.data.slots;
+    return response.data.slots || [];
   } catch (error: any) {
     console.error("Error fetching booked time slots:", error.response?.data || error.message);
     return [];
@@ -133,10 +133,10 @@ export async function getBookedTimeSlots(mentorId: string, date: string): Promis
 export async function bookInterview(input: BookInterviewInput): Promise<Interview> {
   try {
     const response = await axios.post("/interviews/book", input);
-    return transformInterview(response.data);
+    return transformInterview(response.data.interview || response.data);
   } catch (error: any) {
     console.error("Error booking interview:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || "Failed to book interview");
+    throw new Error(error.response?.data?.message || error.response?.data?.error || "Failed to book interview");
   }
 }
 
@@ -150,6 +150,6 @@ export async function updateInterviewStatus(
     return response.data;
   } catch (error: any) {
     console.error("Error updating interview status:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || "Failed to update interview status");
+    throw new Error(error.response?.data?.message || error.response?.data?.error || "Failed to update interview status");
   }
 }
