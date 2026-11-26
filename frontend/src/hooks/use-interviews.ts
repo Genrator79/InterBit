@@ -190,7 +190,8 @@ export function useUpdateInterviewStatus() {
         return response.data;
       } catch (err: any) {
         console.error(err);
-        setError(err.response?.data?.error || "Failed to update interview status");
+        const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to update interview status";
+        setError(errorMessage);
         throw err;
       } finally {
         setIsLoading(false);

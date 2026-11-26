@@ -251,46 +251,36 @@ router.patch("/:id/status", authMiddleware, async (req, res) => {
     const currentUserId = req.userInfo?.userId;
     const userRole = req.userInfo?.role;
 
+    // Resolve user's email (from token or fallback DB lookup for existing tokens)
+    let userEmail = req.userInfo?.email;
+    if (!userEmail && currentUserId) {
+      const userRecord = await prisma.user.findUnique({
+        where: { id: currentUserId },
+        select: { email: true },
+      });
+      userEmail = userRecord?.email;
+    }
+
     const isCandidate = existingInterview.userId === currentUserId;
-    const isAssignedMentor = existingInterview.mentor && existingInterview.mentor.email === req.userInfo?.email;
     const isAdmin = userRole === "ADMIN";
+
+    let isAssignedMentor = false;
+    if (existingInterview.mentor && userEmail) {
+      if (existingInterview.mentor.email.toLowerCase() === userEmail.toLowerCase()) {
+        isAssignedMentor = true;
+      }
+    } else if (existingInterview.mentorId && userEmail) {
+      const mentorRecord = await prisma.mentor.findUnique({ where: { email: userEmail } });
+      if (mentorRecord && mentorRecord.id === existingInterview.mentorId) {
+        isAssignedMentor = true;
+      }
+    }
 
     if (!isCandidate && !isAssignedMentor && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: "You are not authorized to update this interview status",
       });
-    }
-
-    // 3. If trying to mark as COMPLETED, validate date/time if scheduled
-    if (status === "COMPLETED" && existingInterview.date && existingInterview.time) {
-      const interviewDate = new Date(existingInterview.date);
-      const timeString = existingInterview.time;
-
-      let hours = 0;
-      let minutes = 0;
-
-      if (timeString) {
-        const [timePart, modifier] = timeString.split(" ");
-        let [h, m] = timePart.split(":").map(Number);
-
-        if (modifier) {
-          if (modifier === "PM" && h < 12) h += 12;
-          if (modifier === "AM" && h === 12) h = 0;
-        }
-        hours = h;
-        minutes = m;
-      }
-
-      interviewDate.setHours(hours, minutes, 0, 0);
-
-      const now = new Date();
-      if (now < interviewDate) {
-        return res.status(400).json({
-          success: false,
-          message: "Cannot mark interview as completed before its scheduled time.",
-        });
-      }
     }
 
     const interview = await prisma.interview.update({

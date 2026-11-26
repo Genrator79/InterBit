@@ -96,6 +96,7 @@ const registerUser = async (req, res) => {
         const accessToken = jwt.sign({
             userId: newlyCreatedUser.id,
             username: newlyCreatedUser.username,
+            email: newlyCreatedUser.email,
             role: newlyCreatedUser.role
         }, process.env.JWT_SECRET_KEY, {
             expiresIn: "1d"
@@ -161,6 +162,7 @@ const loginUser = async (req, res) => {
         const accessToken = jwt.sign({
             userId: user.id,
             username: user.username,
+            email: user.email,
             role: user.role
         }, process.env.JWT_SECRET_KEY, {
             expiresIn: "1d"
