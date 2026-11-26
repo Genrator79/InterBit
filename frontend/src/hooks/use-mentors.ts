@@ -65,7 +65,7 @@ export function useCreateMentor(): UseCreateMentorResult {
     try {
       // Optional: generate avatar if imageUrl not provided
       if (!input.imageUrl && input.name) {
-        input.imageUrl = `/api/avatar?name=${encodeURIComponent(input.name)}`;
+        input.imageUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(input.name)}&background=6366f1&color=fff`;
       }
 
       const data = await createMentorApi(input);
