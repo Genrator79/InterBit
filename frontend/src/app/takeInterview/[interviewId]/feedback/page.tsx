@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";
 
 interface RouteParams {
-    params: {
+    params: Promise<{
         interviewId: string;
-    };
+    }>;
 }
 
 export default async function FeedbackPage({ params }: RouteParams) {

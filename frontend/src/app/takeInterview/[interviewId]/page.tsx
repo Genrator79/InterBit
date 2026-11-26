@@ -3,9 +3,9 @@ import InterviewDetails from "./InterviewDetails";
 import { fetchInterviewByIdServer } from "@/lib/actions/fetchInterviewById";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     interviewId: string;
-  };
+  }>;
 }
 
 export default async function InterviewPage({ params }: RouteParams) {
