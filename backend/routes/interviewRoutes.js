@@ -11,7 +11,10 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const interviews = await prisma.interview.findMany({
-      include: { user: true, mentor: true },
+      include: {
+        user: { select: { id: true, username: true, email: true, role: true } },
+        mentor: true,
+      },
       orderBy: { date: "asc" },
     });
 
@@ -80,7 +83,10 @@ router.get("/me", authMiddleware, async (req, res) => {
 
     const interviews = await prisma.interview.findMany({
       where: whereClause,
-      include: { user: true, mentor: true },
+      include: {
+        user: { select: { id: true, username: true, email: true, role: true } },
+        mentor: true,
+      },
       orderBy: { date: "asc" },
     });
 
@@ -146,7 +152,10 @@ router.post("/book", authMiddleware, async (req, res) => {
         type,
         duration,
       },
-      include: { user: true, mentor: true },
+      include: {
+        user: { select: { id: true, username: true, email: true, role: true } },
+        mentor: true,
+      },
     });
 
     res.status(200).json({
@@ -215,7 +224,10 @@ router.patch("/:id/status", authMiddleware, async (req, res) => {
     const interview = await prisma.interview.update({
       where: { id },
       data: { status },
-      include: { user: true, mentor: true },
+      include: {
+        user: { select: { id: true, username: true, email: true, role: true } },
+        mentor: true,
+      },
     });
 
     res.status(200).json({

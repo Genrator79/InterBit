@@ -78,7 +78,10 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const interviews = await prisma.interview.findMany({
-      include: { user: true, mentor: true },
+      include: {
+        user: { select: { id: true, username: true, email: true, role: true } },
+        mentor: true,
+      },
       orderBy: { date: "asc" },
     });
 
@@ -105,7 +108,9 @@ router.get("/:id", async (req, res) => {
 
     const interview = await prisma.interview.findUnique({
       where: { id }, // cuid → STRING ID
-      include: { user: true }
+      include: {
+        user: { select: { id: true, username: true, email: true, role: true } },
+      },
     });
 
     if (!interview) {

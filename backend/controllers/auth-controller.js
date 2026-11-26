@@ -4,10 +4,27 @@ const prisma = require("../lib/prisma");
 
 //get all user
 const getAllUsers = async (req, res) => {
-    const users = await prisma.user.findMany();
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                role: true,
+                createdAt: true,
+            },
+            orderBy: { createdAt: "desc" },
+        });
 
-    return res.status(200).json(users);
-}
+        return res.status(200).json(users);
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch users",
+        });
+    }
+};
 
 
 //register conltoller
