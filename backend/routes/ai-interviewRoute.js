@@ -108,7 +108,8 @@ router.get("/", authMiddleware, async (req, res) => {
 // ===========================
 //  GET AI INTERVIEW BY ID
 // ===========================
-router.get("/:id", authMiddleware, async (req, res) => {
+// Accessible without mandatory token so Next.js Server Components can render the interview page
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
