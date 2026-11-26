@@ -20,8 +20,12 @@ function UserManagement() {
 
     const fetchUsers = async () => {
         try {
-            const response = await axios.get("/"); // Assuming this hits /api/ (userRoutes) which has getAllUsers
-            setUsers(response.data);
+            const response = await axios.get("/"); // Hits /api/ (userRoutes) which has getAllUsers
+            if (Array.isArray(response.data)) {
+                setUsers(response.data);
+            } else {
+                setUsers([]);
+            }
         } catch (error) {
             console.error("Error fetching users:", error);
             toast.error("Failed to fetch users");
