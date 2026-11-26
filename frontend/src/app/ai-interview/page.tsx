@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { UserContext } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 import InterviewCard from "@/components/InterviewCard";
-import { useUserInterviews, useGetAllInterviews } from "@/hooks/use-interviews";
+import { useUserInterviews } from "@/hooks/use-interviews";
 import LoadingCard from "@/components/ui/LoadingCard";
 import Navbar from "@/components/Navbar";
 
@@ -28,16 +28,11 @@ export default function HomePage() {
 
     const reversedInterviews = [...userInterviews].reverse();
 
-    const {
-        data: allInterviewsResponse,
-        isLoading: loadingAllInterviews,
-    } = useGetAllInterviews();
-
     // -----------------------------
     // ✅ FILTER STATES
     // -----------------------------
     const [selectedRole, setSelectedRole] = useState("");
-    const [selectedType, setSelectedType] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState("");
     const [selectedTech, setSelectedTech] = useState("");
 
     // -----------------------------
@@ -48,9 +43,9 @@ export default function HomePage() {
             selectedRole === "" ||
             item.role?.toLowerCase().includes(selectedRole.toLowerCase());
 
-        const matchType =
-            selectedType === "" ||
-            item.type.toLowerCase() === selectedType.toLowerCase();
+        const matchStatus =
+            selectedStatus === "" ||
+            item.status?.toUpperCase() === selectedStatus.toUpperCase();
 
         const matchTech =
             selectedTech === "" ||
@@ -58,9 +53,9 @@ export default function HomePage() {
                 t.toLowerCase().includes(selectedTech.toLowerCase())
             );
 
-        const matchAI = item.mentorId === null;
+        const matchAI = item.mentorId === null || item.type === "AI";
 
-        return matchRole && matchType && matchTech && matchAI;
+        return matchRole && matchStatus && matchTech && matchAI;
     });
 
     // -----------------------------
@@ -75,7 +70,7 @@ export default function HomePage() {
 
     if (user === undefined) return null;
 
-    const loading = loadingUserInterviews || loadingAllInterviews;
+    const loading = loadingUserInterviews;
 
     return (
         <div className="min-h-screen bg-background">
@@ -130,19 +125,18 @@ export default function HomePage() {
                                 }}
                             />
 
-                            {/* Type Dropdown */}
+                            {/* Status Dropdown */}
                             <select
                                 className="border p-2 rounded-md w-full md:w-1/3"
-                                value={selectedType}
+                                value={selectedStatus}
                                 onChange={(e) => {
-                                    setSelectedType(e.target.value);
+                                    setSelectedStatus(e.target.value);
                                     setCurrentPage(1);
                                 }}
                             >
-                                <option value="">All Types</option>
-                                <option value="technical">Technical</option>
-                                <option value="behavioral">Behavioral</option>
-                                <option value="system">System Design</option>
+                                <option value="">All Statuses</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="PENDING">Pending</option>
                             </select>
 
                             {/* Tech Stack Search */}
