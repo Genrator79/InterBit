@@ -1,14 +1,16 @@
 const express = require("express");
-const authMiddleware = require("../middleware/auth-middleware")
+const authMiddleware = require("../middleware/auth-middleware");
 const prisma = require("../lib/prisma");
 
 const router = express.Router();
 
+const VALID_STATUSES = ["PENDING", "ACCEPTED", "REJECTED", "COMPLETED", "CANCELLED"];
+
 // -------------------------
 // GET /interviews
-// Fetch all interviews or user-specific if userId query param provided
+// Fetch all interviews (protected)
 // -------------------------
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
     const interviews = await prisma.interview.findMany({
       include: {
@@ -24,7 +26,7 @@ router.get("/", async (req, res) => {
       interviews,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching interviews:", err);
     res.status(500).json({ success: false, message: "Failed to fetch interviews" });
   }
 });
@@ -35,50 +37,51 @@ router.get("/", async (req, res) => {
 // -------------------------
 router.get("/me/stats", authMiddleware, async (req, res) => {
   try {
-    const userId = Number(req.query.userId);
-    if (!userId) return res.status(400).json({ success: false, message: "User ID required" });
+    // Read from authenticated token first, or query param if admin
+    const queryUserId = Number(req.query.userId);
+    const userId = (req.userInfo?.role === "ADMIN" && queryUserId) ? queryUserId : req.userInfo?.userId;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID required" });
+    }
 
     const total = await prisma.interview.count({ where: { userId } });
     const completed = await prisma.interview.count({ where: { userId, status: "COMPLETED" } });
 
     res.status(200).json({ success: true, message: "Stats fetched!", stats: { total, completed } });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching stats:", err);
     res.status(500).json({ success: false, message: "Failed to fetch stats" });
   }
 });
 
 // -------------------------
-// GET /interviews
-// Fetch all interviews or user-specific if userId query param provided
+// GET /interviews/me
+// Fetch interviews for authenticated user or mentor
 // -------------------------
 router.get("/me", authMiddleware, async (req, res) => {
   try {
-    const { userId } = req.query;
+    const queryUserId = Number(req.query.userId);
+    const userId = (req.userInfo?.role === "ADMIN" && queryUserId) ? queryUserId : req.userInfo?.userId;
 
-    // Check if the user is a mentor and wants their mentor interviews
-    // We can interpret this from the user role in the token (avail via authMiddleware usually, but here we query user)
-    const user = await prisma.user.findUnique({ where: { id: Number(userId) } });
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID required" });
+    }
 
-    let whereClause = {};
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
-    if (user && user.role === "MENTOR") {
-      // Find the mentor record associated with this user's email
+    let whereClause = { userId };
+
+    if (user.role === "MENTOR") {
       const mentor = await prisma.mentor.findUnique({ where: { email: user.email } });
       if (mentor) {
-        // If user is mentor, get interviews where they are the mentor OR the user (if they book for themselves)
         whereClause = {
-          OR: [
-            { mentorId: mentor.id },
-            { userId: Number(userId) }
-          ]
+          OR: [{ mentorId: mentor.id }, { userId }],
         };
-      } else {
-        // Fallback: if role is MENTOR but no Mentor profile found (shouldn't happen with our fix), treat as User
-        whereClause = { userId: Number(userId) };
       }
-    } else {
-      whereClause = userId ? { userId: Number(userId) } : {};
     }
 
     const interviews = await prisma.interview.findMany({
@@ -96,11 +99,10 @@ router.get("/me", authMiddleware, async (req, res) => {
       interviews,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching my interviews:", err);
     res.status(500).json({ success: false, message: "Failed to fetch interviews" });
   }
 });
-
 
 // -------------------------
 // GET /interviews/booked-slots
@@ -109,13 +111,26 @@ router.get("/me", authMiddleware, async (req, res) => {
 router.get("/booked-slots", authMiddleware, async (req, res) => {
   try {
     const { mentorId, date } = req.query;
-    if (!mentorId || !date)
-      return res
-        .status(400)
-        .json({ success: false, message: "mentorId and date required" });
+    if (!mentorId || !date) {
+      return res.status(400).json({ success: false, message: "mentorId and date required" });
+    }
+
+    const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ success: false, message: "Invalid date format" });
+    }
+
+    const startOfDay = new Date(targetDate);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+    const endOfDay = new Date(targetDate);
+    endOfDay.setUTCHours(23, 59, 59, 999);
 
     const interviews = await prisma.interview.findMany({
-      where: { mentorId, date: new Date(date) },
+      where: {
+        mentorId,
+        date: { gte: startOfDay, lte: endOfDay },
+        status: { notIn: ["CANCELLED", "REJECTED"] },
+      },
       select: { time: true },
     });
 
@@ -126,7 +141,7 @@ router.get("/booked-slots", authMiddleware, async (req, res) => {
       slots,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching booked slots:", err);
     res.status(500).json({ success: false, message: "Failed to fetch booked slots" });
   }
 });
@@ -137,20 +152,57 @@ router.get("/booked-slots", authMiddleware, async (req, res) => {
 // -------------------------
 router.post("/book", authMiddleware, async (req, res) => {
   try {
-    const { userId, mentorId, date, time, type = "AI", duration = 60 } = req.body;
-    if (!userId || !date || !time)
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required fields" });
+    const { mentorId, date, time, type = "HUMAN", duration = 60, userId: bodyUserId } = req.body;
+
+    const bookingUserId = req.userInfo?.role === "ADMIN" && bodyUserId ? Number(bodyUserId) : req.userInfo?.userId;
+
+    if (!bookingUserId || !date || !time) {
+      return res.status(400).json({ success: false, message: "Missing required fields: date and time" });
+    }
+
+    const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ success: false, message: "Invalid date format" });
+    }
+
+    // Verify mentor exists if mentorId is provided
+    if (mentorId) {
+      const mentor = await prisma.mentor.findUnique({ where: { id: mentorId } });
+      if (!mentor) {
+        return res.status(404).json({ success: false, message: "Mentor not found" });
+      }
+
+      // Check for double booking
+      const startOfDay = new Date(targetDate);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+      const endOfDay = new Date(targetDate);
+      endOfDay.setUTCHours(23, 59, 59, 999);
+
+      const existingBooking = await prisma.interview.findFirst({
+        where: {
+          mentorId,
+          time,
+          date: { gte: startOfDay, lte: endOfDay },
+          status: { notIn: ["CANCELLED", "REJECTED"] },
+        },
+      });
+
+      if (existingBooking) {
+        return res.status(400).json({
+          success: false,
+          message: "This mentor is already booked for this date and time slot",
+        });
+      }
+    }
 
     const interview = await prisma.interview.create({
       data: {
-        userId,
+        userId: bookingUserId,
         mentorId: mentorId || null,
-        date: new Date(date),
+        date: targetDate,
         time,
         type,
-        duration,
+        duration: parseInt(duration, 10) || 60,
       },
       include: {
         user: { select: { id: true, username: true, email: true, role: true } },
@@ -158,13 +210,13 @@ router.post("/book", authMiddleware, async (req, res) => {
       },
     });
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Interview booked successfully!",
       interview,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error booking interview:", err);
     res.status(500).json({ success: false, message: "Failed to book interview" });
   }
 });
@@ -178,22 +230,43 @@ router.patch("/:id/status", authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
+      });
+    }
+
     // 1. Fetch current interview details
     const existingInterview = await prisma.interview.findUnique({
       where: { id },
+      include: { mentor: true },
     });
 
     if (!existingInterview) {
       return res.status(404).json({ success: false, message: "Interview not found" });
     }
 
-    // 2. If trying to mark as COMPLETED, validate date/time
-    if (status === "COMPLETED") {
-      const interviewDate = new Date(existingInterview.date);
-      const timeString = existingInterview.time; // e.g., "10:00 AM" or "14:00"
+    // 2. Authorization check: Admin, or candidate owner, or assigned mentor
+    const currentUserId = req.userInfo?.userId;
+    const userRole = req.userInfo?.role;
 
-      // Parse time string to adjust interviewDate
-      // Assuming format "HH:mm" or "h:mm A"
+    const isCandidate = existingInterview.userId === currentUserId;
+    const isAssignedMentor = existingInterview.mentor && existingInterview.mentor.email === req.userInfo?.email;
+    const isAdmin = userRole === "ADMIN";
+
+    if (!isCandidate && !isAssignedMentor && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this interview status",
+      });
+    }
+
+    // 3. If trying to mark as COMPLETED, validate date/time if scheduled
+    if (status === "COMPLETED" && existingInterview.date && existingInterview.time) {
+      const interviewDate = new Date(existingInterview.date);
+      const timeString = existingInterview.time;
+
       let hours = 0;
       let minutes = 0;
 
@@ -212,11 +285,10 @@ router.patch("/:id/status", authMiddleware, async (req, res) => {
       interviewDate.setHours(hours, minutes, 0, 0);
 
       const now = new Date();
-
       if (now < interviewDate) {
         return res.status(400).json({
           success: false,
-          message: "Cannot mark interview as completed before its scheduled time."
+          message: "Cannot mark interview as completed before its scheduled time.",
         });
       }
     }
@@ -236,13 +308,9 @@ router.patch("/:id/status", authMiddleware, async (req, res) => {
       interview,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error updating status:", err);
     res.status(500).json({ success: false, message: "Failed to update status" });
   }
 });
 
-
-
-
 module.exports = router;
-
