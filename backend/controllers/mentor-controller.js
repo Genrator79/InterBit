@@ -38,15 +38,24 @@ async function createMentor(req, res) {
   try {
     const { name, email, phone, speciality, bio, imageUrl, isActive } = req.body;
 
+    if (!name || !email || !speciality) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and speciality are required.",
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+
     const mentor = await prisma.mentor.create({
       data: {
-        name,
-        email,
+        name: String(name).trim(),
+        email: normalizedEmail,
         phone,
         speciality,
         bio,
         imageUrl,
-        isActive,
+        isActive: isActive !== undefined ? isActive : true,
       },
     });
 
@@ -78,22 +87,28 @@ async function createMentor(req, res) {
 // ----------------------
 async function updateMentor(req, res) {
   const { id } = req.params;
-  const { name, email, phone, speciality, bio, isActive } = req.body;
+  const { name, email, phone, speciality, bio, imageUrl, isActive } = req.body;
 
   if (!name || !email || !speciality) {
-    return res.status(400).json({ error: "Name, email, and speciality are required." });
+    return res.status(400).json({
+      success: false,
+      message: "Name, email, and speciality are required.",
+    });
   }
+
+  const normalizedEmail = String(email).trim().toLowerCase();
 
   try {
     const updatedMentor = await prisma.mentor.update({
       where: { id },
       data: {
-        name,
-        email,
+        name: String(name).trim(),
+        email: normalizedEmail,
         phone,
         speciality,
         bio,
-        isActive,
+        ...(imageUrl !== undefined && { imageUrl }),
+        ...(isActive !== undefined && { isActive }),
       },
     });
 
@@ -103,14 +118,23 @@ async function updateMentor(req, res) {
       mentor: updatedMentor,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error updating mentor:", err);
     if (err.code === "P2025") {
-      return res.status(404).json({ error: "Mentor not found." });
+      return res.status(404).json({
+        success: false,
+        message: "Mentor not found.",
+      });
     }
     if (err.code === "P2002") {
-      return res.status(409).json({ error: "Email already exists." });
+      return res.status(409).json({
+        success: false,
+        message: "A mentor with this email already exists.",
+      });
     }
-    return res.status(500).json({ error: "Failed to update mentor." });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update mentor.",
+    });
   }
 }
 
