@@ -1,32 +1,28 @@
 const jwt = require("jsonwebtoken");
 
-const authMiddleware = (req,res ,next)=>{
-    const authHeader = req.headers['authorization'];
+const authMiddleware = (req, res, next) => {
+    const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+    const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
 
-    // console.log(authHeader);
-
-    const token = authHeader && authHeader.split(" ")[1];
-
-    if(!token){
+    if (!token) {
         return res.status(401).json({
-            success : false,
-            message : "Access denied, no token ,please login again"
+            success: false,
+            message: "Access denied, no token provided. Please login again."
         });
-    };
+    }
 
-    try{
+    try {
         const decodeTokenInfo = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        // console.log(decodeTokenInfo);
-        
-        req.userInfo = decodeTokenInfo; //as we are passing before next() so the req object will carry it to the next middleware/function
+        req.userInfo = decodeTokenInfo;
         next();
-    }
-    catch(error){
-        return res.status(500).json({
-            success : false,
-            message : "Access denied, wrong token ,please login again"
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: error.name === "TokenExpiredError"
+                ? "Token expired. Please login again."
+                : "Access denied, invalid token. Please login again."
         });
     }
-}
+};
 
 module.exports = authMiddleware;
