@@ -11,6 +11,7 @@ import { createFeedback, createQuestions } from "@/lib/actions/general.action";
 import FeedbackLoading from "./FeedbackLoading";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Phone, PhoneOff, Radio } from "lucide-react";
+import { toast } from "sonner";
 
 interface AgentProps {
   username: string;
@@ -167,6 +168,8 @@ const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) =
       hasHandledFinish.current = true;
       handleGenerateQuestions();
     } else {
+      if (hasHandledFinish.current) return;
+      hasHandledFinish.current = true;
       handleGenerateFeedback(messages);
     }
   }, [callStatus, type, messages]);
@@ -197,10 +200,10 @@ const Agent = ({ username, userId, type, interviewId, questions }: AgentProps) =
           },
         });
       }
-    } catch (e) {
-      console.error(e)
-      // Reset to INACTIVE if start fails? 
-      // setCallStatus(CallStatus.INACTIVE) 
+    } catch (e: any) {
+      console.error("Vapi start error:", e);
+      setCallStatus(CallStatus.INACTIVE);
+      toast.error(e?.message || "Failed to start interview call");
     }
   };
 
