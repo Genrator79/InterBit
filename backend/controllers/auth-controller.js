@@ -15,46 +15,66 @@ const registerUser = async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
 
+        if (!username || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Username, email, and password are required"
+            });
+        }
+
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const trimmedUsername = String(username).trim();
+
+        if (!normalizedEmail.includes("@") || !normalizedEmail.includes(".")) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid email address"
+            });
+        }
+
+        if (String(password).length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters long"
+            });
+        }
+
         //check if the user is already exists in our database
         const checkExistingUser = await prisma.user.findUnique({
-            where: { email: email }
-        })
+            where: { email: normalizedEmail }
+        });
         if (checkExistingUser) {
             return res.status(400).json({
                 success: false,
                 message: "User already exist with this email"
-            })
+            });
         }
 
-        //hash the user
+        //hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Check if this email belongs to a pre-created Mentor (added by Admin)
-        let finalRole = role?.toUpperCase() || "USER";
+        // Public registration can NEVER grant ADMIN role
+        let finalRole = "USER";
+        const existingMentor = await prisma.mentor.findUnique({
+            where: { email: normalizedEmail }
+        });
 
-        // If the requested role is NOT already MENTOR, check if they should be one
-        if (finalRole !== "MENTOR") {
-            const existingMentor = await prisma.mentor.findUnique({
-                where: { email: email }
-            });
-
-            if (existingMentor) {
-                console.log(`Auto-assigning MENTOR role to ${email}`);
-                finalRole = "MENTOR";
-            }
+        if (existingMentor) {
+            console.log(`Auto-assigning MENTOR role to ${normalizedEmail}`);
+            finalRole = "MENTOR";
         }
 
         //now create a new user and save it in your database
         const newlyCreatedUser = await prisma.user.create({
             data: {
-                username,
-                email,
+                username: trimmedUsername,
+                email: normalizedEmail,
                 password: hashedPassword,
                 role: finalRole
             }
-        })
-
+        });
 
         const accessToken = jwt.sign({
             userId: newlyCreatedUser.id,
@@ -62,7 +82,7 @@ const registerUser = async (req, res) => {
             role: newlyCreatedUser.role
         }, process.env.JWT_SECRET_KEY, {
             expiresIn: "1d"
-        })
+        });
 
         res.status(201).json({
             success: true,
@@ -74,32 +94,39 @@ const registerUser = async (req, res) => {
                 email: newlyCreatedUser.email,
                 role: newlyCreatedUser.role,
             },
-        })
+        });
     }
     catch (error) {
-        console.error("error in regestration", error);
+        console.error("error in registration", error);
         res.status(500).json({
             success: false,
             message: "some error occured ! Please try again"
-        })
+        });
     }
-}
-
+};
 
 //login controller
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        //find if the current user exists in database or not
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
+            });
+        }
 
-        const user = await prisma.user.findUnique({ where: { email: email } })   //user.password will be used to check password
+        const normalizedEmail = String(email).trim().toLowerCase();
+
+        //find if the current user exists in database or not
+        const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
         if (!user) {
             return res.status(400).json({
-                succss: false,
+                success: false,
                 message: "User doesn't exists !!!",
-            })
+            });
         }
         //if password is correct or not
 
@@ -109,7 +136,7 @@ const loginUser = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Invalid email or password !!!",
-            })
+            });
         }
 
         //create user token
@@ -120,7 +147,7 @@ const loginUser = async (req, res) => {
             role: user.role
         }, process.env.JWT_SECRET_KEY, {
             expiresIn: "1d"
-        })
+        });
 
         res.status(200).json({
             success: true,
@@ -132,14 +159,14 @@ const loginUser = async (req, res) => {
                 email: user.email,
                 role: user.role,
             },
-        })
+        });
     }
     catch (error) {
         console.error(error);
         res.status(500).json({
             success: false,
             message: "some error occured ! please try again"
-        })
+        });
     }
 };
 
@@ -150,11 +177,23 @@ const changePassword = async (req, res) => {
         const userId = req.userInfo.userId;
 
         //extract the new and old password
-
         const { oldPassword, newPassword } = req.body;
 
-        //find the current logged user
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Old password and new password are required"
+            });
+        }
 
+        if (String(newPassword).length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be at least 6 characters long"
+            });
+        }
+
+        //find the current logged user
         const user = await prisma.user.findUnique({ where: { id: userId } });
 
         if (!user) {
@@ -272,15 +311,23 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
+        const targetUserId = parseInt(id, 10);
+
+        if (isNaN(targetUserId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user ID"
+            });
+        }
 
         //check if user exists
-        const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+        const user = await prisma.user.findUnique({ where: { id: targetUserId } });
 
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
-            })
+            });
         }
 
         // Prevent deleting yourself
@@ -300,7 +347,7 @@ const deleteUser = async (req, res) => {
         }
 
         //delete user
-        await prisma.user.delete({ where: { id: parseInt(id) } });
+        await prisma.user.delete({ where: { id: targetUserId } });
 
         return res.status(200).json({
             success: true,
