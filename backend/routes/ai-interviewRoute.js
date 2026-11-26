@@ -1,11 +1,10 @@
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../lib/prisma");
 const { generateText } = require("ai");
 const { google } = require("@ai-sdk/google");
 // const { getRandomInterviewCover } = require("../lib/utils");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // ===========================
 //  CREATE INTERVIEW

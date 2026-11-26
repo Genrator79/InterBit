@@ -1,12 +1,10 @@
 
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { getAllUsers, registerUser, loginUser, changePassword, updateUser, deleteUser } = require('../controllers/auth-controller');
 const authMiddleware = require('../middleware/auth-middleware');
 const isAdminUser = require("../middleware/admin-middleware")
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get all users (example)
 router.get("/", authMiddleware, isAdminUser, getAllUsers);

@@ -1,11 +1,10 @@
 const express = require("express");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../lib/prisma");
 const { google } = require("@ai-sdk/google");
 const { generateObject } = require("ai");
 const { feedbackSchema } = require("../constants/feedbackSchema.js");
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 router.post("/create-feedback", async (req, res) => {
   try {
