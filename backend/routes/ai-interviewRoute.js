@@ -1,113 +1,119 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
-const { generateText } = require("ai");
+const { generateObject } = require("ai");
 const { google } = require("@ai-sdk/google");
-// const { getRandomInterviewCover } = require("../lib/utils");
+const { z } = require("zod");
+const authMiddleware = require("../middleware/auth-middleware");
 
 const router = express.Router();
 
 // ===========================
 //  CREATE INTERVIEW
 // ===========================
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { type, role, level, techstack, amount, userid } = req.body;
+    const { type = "Technical", role, level = "Mid-level", techstack = "", amount = 5, userid, userId } = req.body;
 
-    if (!role || !userid) {
+    const targetUserId = req.userInfo?.userId || parseInt(userId || userid, 10);
+
+    if (!role || !targetUserId || isNaN(targetUserId)) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing role or userid" });
+        .json({ success: false, message: "Missing required fields: role and valid userId" });
     }
 
-    // 1️⃣ Generate interview questions
-    const { text: questionsText } = await generateText({
-      model: google("gemini-2.5-flash"),
-      prompt: `Prepare questions for a job interview.
-        The job role is ${role}.
-        The job experience level is ${level}.
-        The tech stack used in the job is: ${techstack}.
-        The focus between behavioural and technical questions should lean towards: ${type}.
-        The amount of questions required is: ${amount}.
-        Please return only the questions, without any additional text.
-        The questions should be returned in JSON array format like ["Q1", "Q2"].`,
+    // Safely parse techstack
+    let techstackArray = [];
+    if (Array.isArray(techstack)) {
+      techstackArray = techstack.map((s) => String(s).trim()).filter(Boolean);
+    } else if (typeof techstack === "string") {
+      techstackArray = techstack
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+
+    const questionCount = Math.min(Math.max(parseInt(amount, 10) || 5, 1), 15);
+
+    // 1️⃣ Generate interview questions using structured object output
+    const { object: parsedQuestions } = await generateObject({
+      model: google("gemini-1.5-flash"),
+      schema: z.array(z.string()).min(1),
+      prompt: `Prepare interview questions for a job interview.
+Role: ${role}
+Experience Level: ${level}
+Tech Stack: ${techstackArray.join(", ") || "General"}
+Focus: ${type}
+Number of Questions: ${questionCount}
+Generate exactly ${questionCount} relevant, challenging, and clear interview questions.`,
     });
 
-    // 2️⃣ Parse model response safely
-    let parsedQuestions;
-    try {
-      const cleanedText = questionsText.replace(/```json/g, "").replace(/```/g, "").trim();
-      parsedQuestions = JSON.parse(cleanedText);
-      if (!Array.isArray(parsedQuestions)) throw new Error("Invalid format");
-    } catch (err) {
-      console.error("Invalid model response:", questionsText);
-      throw new Error("AI response parsing failed");
-    }
-
-    // 3️⃣ Save to DB using Prisma
+    // 2️⃣ Save to DB using Prisma
     const interview = await prisma.interview.create({
       data: {
         role,
-        type,
+        type: "AI",
         level,
-        techstack: techstack.split(",").map((s) => s.trim()),
+        techstack: techstackArray,
         questions: parsedQuestions,
-        userId: parseInt(userid),
+        userId: targetUserId,
         finalized: true,
-        // coverImage: getRandomInterviewCover(),
+      },
+      include: {
+        user: { select: { id: true, username: true, email: true, role: true } },
       },
     });
 
     return res.status(201).json({
       success: true,
       message: "Interview created successfully!",
+      interviewId: interview.id,
+      questions: interview.questions,
       interview,
     });
   } catch (error) {
-    console.error("Error creating interview:", error);
+    console.error("Error creating AI interview:", error);
     return res
       .status(500)
-      .json({ success: false, message: error.message || "Server error" });
+      .json({ success: false, message: error.message || "Failed to create AI interview" });
   }
 });
 
 // ===========================
-//  GET ALL INTERVIEWS
+//  GET ALL AI INTERVIEWS
 // ===========================
-
-
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
     const interviews = await prisma.interview.findMany({
+      where: { type: "AI" },
       include: {
         user: { select: { id: true, username: true, email: true, role: true } },
-        mentor: true,
       },
-      orderBy: { date: "asc" },
+      orderBy: { createdAt: "desc" },
     });
 
     res.status(200).json({
       success: true,
-      message: "Interviews fetched successfully!",
+      message: "AI Interviews fetched successfully!",
       interviews,
     });
   } catch (err) {
-    console.error("Error fetching interviews:", err);
+    console.error("Error fetching AI interviews:", err);
     res
       .status(500)
-      .json({ success: false, message: "Failed to fetch interviews" });
+      .json({ success: false, message: "Failed to fetch AI interviews" });
   }
 });
-
 
 // ===========================
 //  GET AI INTERVIEW BY ID
 // ===========================
-router.get("/:id", async (req, res) => {
+router.get("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
     const interview = await prisma.interview.findUnique({
-      where: { id }, // cuid → STRING ID
+      where: { id },
       include: {
         user: { select: { id: true, username: true, email: true, role: true } },
       },
@@ -116,22 +122,21 @@ router.get("/:id", async (req, res) => {
     if (!interview) {
       return res.status(404).json({
         success: false,
-        message: "AI Interview not found"
+        message: "AI Interview not found",
       });
     }
-    // console.log(interview);
+
     return res.status(200).json({
       success: true,
-      interview
+      interview,
     });
   } catch (error) {
     console.error("Error fetching AI interview:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch AI interview"
+      message: "Failed to fetch AI interview",
     });
   }
 });
-
 
 module.exports = router;

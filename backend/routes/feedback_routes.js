@@ -3,25 +3,34 @@ const prisma = require("../lib/prisma");
 const { google } = require("@ai-sdk/google");
 const { generateObject } = require("ai");
 const { feedbackSchema } = require("../constants/feedbackSchema.js");
+const authMiddleware = require("../middleware/auth-middleware");
 
 const router = express.Router();
 
-router.post("/create-feedback", async (req, res) => {
+router.post("/create-feedback", authMiddleware, async (req, res) => {
   try {
     const { interviewId, transcript } = req.body;
 
-    if (!interviewId || !transcript)
-      return res.status(400).json({ success: false, message: "Missing fields" });
+    if (!interviewId || !transcript || !Array.isArray(transcript)) {
+      return res.status(400).json({ success: false, message: "Missing interviewId or valid transcript array" });
+    }
+
+    // Verify interview exists before invoking AI model
+    const existingInterview = await prisma.interview.findUnique({
+      where: { id: interviewId },
+    });
+
+    if (!existingInterview) {
+      return res.status(404).json({ success: false, message: "Interview not found" });
+    }
 
     const formattedTranscript = transcript
-      .map((s) => `- ${s.role}: ${s.content}\n`)
+      .map((s) => `- ${s.role || "Speaker"}: ${s.content || ""}\n`)
       .join("");
 
     // ---- AI FEEDBACK GENERATION ----
     const { object } = await generateObject({
-      model: google("gemini-2.5-flash", {
-        structuredOutputs: false,
-      }),
+      model: google("gemini-1.5-flash"),
       schema: feedbackSchema,
       prompt: `
         You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
@@ -40,7 +49,6 @@ router.post("/create-feedback", async (req, res) => {
     });
 
     const totalScore = object.totalScore;
-    const finalAssessment = object.finalAssessment;
 
     // --- UPDATE INTERVIEW RECORD IN POSTGRES ----
     const updated = await prisma.interview.update({
@@ -49,6 +57,9 @@ router.post("/create-feedback", async (req, res) => {
         score: totalScore,
         feedback: object, // Store the full JSON object
         status: "COMPLETED",
+      },
+      include: {
+        user: { select: { id: true, username: true, email: true, role: true } },
       },
     });
 
@@ -60,8 +71,7 @@ router.post("/create-feedback", async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating feedback:", error);
-    console.error("Error details:", JSON.stringify(error, null, 2)); // Log full error details
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message || "Failed to generate feedback" });
   }
 });
 
